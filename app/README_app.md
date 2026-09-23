@@ -1,6 +1,6 @@
 # ADCS Comparison App (GUI)
 
-`app/ADCS_ComparisonApp.m` is the graphical front end of the ADCS Controller Comparison Tool. With it you configure a LEO-chaser / ISS rendezvous scenario (3-axis rotational dynamics only) and run one controller or all three:
+`app/ADCS_ComparisonApp.m` is the graphical front end of the ADCS-MATLAB-App. With it you configure a LEO-chaser / ISS rendezvous scenario (3-axis rotational dynamics only) and run one controller or all three:
 
 1. Robust SMC
 2. Adaptive SMC (online inertia estimation)

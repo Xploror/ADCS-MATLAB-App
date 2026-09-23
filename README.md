@@ -1,4 +1,4 @@
-# ADCS Controller Comparison Tool — LEO Chaser / ISS Rendezvous (v1.1.0)
+# ADCS-MATLAB-App — LEO Chaser / ISS Rendezvous (v1.1.0)
 
 An interactive MATLAB/Simulink environment for testing and comparing three 3-axis attitude controllers on a chaser spacecraft in a 400 km LEO orbit approaching the ISS:
 

@@ -1554,7 +1554,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
             %% ===== Figure and root grid =====
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.Position = [60 60 1400 860];
-            app.UIFigure.Name = 'ADCS Controller Comparison Tool — LEO Chaser / ISS Rendezvous';
+            app.UIFigure.Name = 'ADCS-MATLAB-App — LEO Chaser / ISS Rendezvous';
 
             app.MainGrid = uigridlayout(app.UIFigure, [2 1]);
             app.MainGrid.RowHeight = {'1x', 24};

@@ -1,8 +1,8 @@
-# notes.md — ADCS Controller Comparison Tool
+# notes.md — ADCS-MATLAB-App
 
 | Field | Value |
 |---|---|
-| Project | Robust, Adaptive & Benchmark Attitude Controller Comparison Tool (LEO chaser → ISS, 3-axis attitude) |
+| Project | ADCS-MATLAB-App: Robust, Adaptive & Benchmark Attitude Controllers (LEO chaser → ISS, 3-axis attitude) |
 | Version | v1.1.0 (first MATLAB/Simulink execution: Simulink generator fixes D12–D13, full MATLAB verification; guardrail rule R9 revised) |
 | Last synced | 2026-09-23 |
 | Phase | Implemented and verified in MATLAB R2026a Update 5 + Simulink 26.1 (both engines) and GNU Octave 8.4 (reference engine). GUI feature checks not yet executed (I9) |

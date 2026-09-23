@@ -1,4 +1,4 @@
-%STARTUP_ADCS Add the ADCS Controller Comparison Tool folders to the path and print usage.
+%STARTUP_ADCS Add the ADCS-MATLAB-App folders to the path and print usage.
 %
 % Inputs:
 %   (none; script)
@@ -23,7 +23,7 @@ for adcs_k = 1:numel(adcs_extra)
 end
 
 %% ===== Usage banner =====
-fprintf('ADCS Controller Comparison Tool: paths added (root: %s)\n', adcs_root);
+fprintf('ADCS-MATLAB-App: paths added (root: %s)\n', adcs_root);
 fprintf('  cfg = scn_nominal();  results = runSimulation(cfg, [1 2 3], ''auto'');\n');
 fprintf('  run_example_comparison          %% scripted comparison with plots\n');
 fprintf('  run_all_tests                   %% unit tests (Simulink cross-check if available)\n');

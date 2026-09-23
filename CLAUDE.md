@@ -1,4 +1,4 @@
-# CLAUDE.md — ADCS Controller Comparison Tool (v1.1.0)
+# CLAUDE.md — ADCS-MATLAB-App (v1.1.0)
 
 Orientation file for any agent or developer working on this project. Read it first, then:
 - `notes.md` is the **research knowledge base**: caveats, deviations, parameter provenance, findings and references.

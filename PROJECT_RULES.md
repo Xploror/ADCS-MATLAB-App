@@ -1,4 +1,4 @@
-# PROJECT_RULES.md — ADCS Controller Comparison Tool
+# PROJECT_RULES.md — ADCS-MATLAB-App
 
 These rules are binding for every agent (human or AI) that develops this project.
 
