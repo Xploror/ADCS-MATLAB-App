@@ -1,0 +1,8 @@
+# Generated / build artefacts (see models/README_models.md)
+_tmp/
+slprj/
+*.slxc
+*.asv
+models/ADCS_ComparisonHarness.slx
+models/ADCS_Params.sldd
+config/saved/*.mat
