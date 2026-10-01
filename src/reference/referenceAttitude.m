@@ -1,14 +1,14 @@
 function [q_r, w_r, wdot_r] = referenceAttitude(t, SC)
-%REFERENCEATTITUDE Reference quaternion, rate and rate derivative at time t.
+% Reference quaternion, rate and rate derivative at time t.
 %
 % Inputs:
-%   t  - double [1], simulation time                                      [s]
-%   SC - struct, sim constants; uses SC.mode [-], SC.q_inertial_ref [-],
+%   t  - double [1], simulation time in secs
+%   SC - struct, sim constants; uses SC.mode, SC.q_inertial_ref,
 %        SC.ref_fd_h (central-difference step) [s], orbit/approach fields
 % Outputs:
-%   q_r    - double [4x1], reference quaternion R w.r.t. N (q0 >= 0)     [-]
-%   w_r    - double [3x1], R-frame rate w.r.t. N in R axes               [rad/s]
-%   wdot_r - double [3x1], time derivative of w_r (R axes)               [rad/s^2]
+%   q_r    - double [4x1], reference quaternion R w.r.t. N (q0 >= 0)
+%   w_r    - double [3x1], R-frame rate w.r.t. N in R axes in rad/s
+%   wdot_r - double [3x1], time derivative of w_r (R axes) in rad/s^2
 %
 % Rates are obtained by central differences of C_RN (docs/DESIGN_SPEC.md 3.5):
 %   W = -Cdot*C',  w = antisymmetric part of W,  wdot = (w(t+h)-w(t-h))/(2h).
@@ -38,17 +38,17 @@ q_r = dcmToQ(C0);
 end
 
 function w = localRate(Cm, C, Cp, h)
-%LOCALRATE Angular rate from a central difference of a DCM history.
+% Angular rate from a central difference of a DCM history.
 %
 % Inputs:
-%   Cm - double [3x3], DCM at t-h                                         [-]
-%   C  - double [3x3], DCM at t                                           [-]
-%   Cp - double [3x3], DCM at t+h                                         [-]
-%   h  - double [1], time step                                            [s]
+%   Cm - double [3x3], DCM at t-h
+%   C  - double [3x3], DCM at t
+%   Cp - double [3x3], DCM at t+h
+%   h  - double [1], time step in secs
 % Outputs:
-%   w  - double [3x1], rate such that Cdot = -[w x] C (frame axes)        [rad/s]
+%   w  - double [3x1], rate such that Cdot = -[w x] C (frame axes)
 
 Cdot = (Cp - Cm)/(2*h);
-W = -Cdot*C.';
+W = -Cdot*C';
 w = 0.5*[W(3,2) - W(2,3); W(1,3) - W(3,1); W(2,1) - W(1,2)];
 end
