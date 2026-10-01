@@ -7,6 +7,6 @@ function [q, qnorm] = quatNormalizeState(q_raw)
 %   q     - double [4x1], unit quaternion q_raw/|q_raw|                   [-]
 %   qnorm - double [1], |q_raw| (health indicator, ideally 1)             [-]
 
-qnorm = sqrt(q_raw.'*q_raw);
+qnorm = sqrt(q_raw'*q_raw);
 q = qNormalize(q_raw);
 end
