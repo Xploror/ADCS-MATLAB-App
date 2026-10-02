@@ -128,7 +128,7 @@ This review covered the D12/D13 changes after the first MATLAB run. Verdict: *ac
 
 ---
 
-## 3. Key research findings (MATLAB R2026a, Simulink and reference engines identical; full tables in docs/technical_report.pdf)
+## 3. Key research findings (MATLAB R2026a, Simulink and reference engines identical)
 
 ### 3.1 Controller ranking
 In every scenario, robust and adaptive SMC reach about half the PD benchmark's steady-state error (0.030–0.164° versus 0.073–0.264°). On the PE scan the adaptive law reaches about 1/76 of the PD error (0.019° vs 1.461°), and about 1/8 of the robust SMC error. PD settles slightly earlier (110 s versus 119 s nominal) because of its larger proportional authority. Large slews are momentum-limited (h_max/J ≈ 0.005 rad/s) regardless of the controller. The per-scenario table is in §5 and in the technical report.
@@ -140,28 +140,14 @@ In every scenario, robust and adaptive SMC reach about half the PD benchmark's s
 
 ---
 
-## 4. Future development directions
-1. Terminal, fixed-time or prescribed-time SMC as a fourth controller [17]; check the comment [22].
-2. Hysteretic hybrid quaternion feedback to remove unwinding and 180° chattering [18].
-3. Excitation-aware adaptation: a PE monitor, composite or concurrent-learning adaptation, or a dead-zone combined with σ-modification, so a single Γ works across scenarios [9].
-4. Input-constrained adaptive laws that modify the update with the saturation error instead of freezing it [19][20].
-5. Wheel momentum management (magnetorquers) and a 4-wheel pyramid with fault injection.
-6. Coupled 6DOF relative motion (Clohessy–Wiltshire/Hill) with a translational controller [8].
-7. An MEKF sensor-fusion front end [21] instead of direct noisy measurements.
-8. Monte Carlo robustness envelopes over inertia, disturbances, ICs and solar activity [26].
-9. A portable, platform-independent pseudo-random generator for J_true and the sensor noise, shared by both engines. This would remove I8 and I14 and make the Octave, MATLAB and Simulink results bit-comparable.
-10. Build the Simulink hierarchy directly (blocks created inside their subsystems) rather than grouping afterwards with `createSubsystem`. This removes the I12 failure mode at its source.
+## 4. Verification record
 
----
-
-## 5. Verification record
-
-### 5.1 Unit tests
+### 4.1 Unit tests
 - **MATLAB R2026a Update 5 + Simulink 26.1 (2026-09-23): 9 PASS, 0 FAIL, 0 SKIP**, including the Simulink acceptance gate `test_simulink_vs_reference`. On nominal, 150 s, max |Δ att_err| is 1.7e-11 / 1.2e-11 / 2.7e-11° (robust / adaptive / PD), and the relative difference in RMS(τ_rw) is ≤ 3e-13 %.
 - GNU Octave 8.4 (2026-09-22): 8 PASS, 0 FAIL, 1 SKIP (the Simulink test).
 - Opt-in `tests/check_model_wiring_repair.m` (MATLAB, 2026-09-23): **PASSED**. The injected mis-wire `TrueErr.w_r ← q_r` was detected and repaired (43 wires verified, 1 repaired), and `test_simulink_vs_reference` passed on the repaired model. The clean rebuild then hit the genuine `createSubsystem` fault on its own (`QNorm.q → TrueErr.q`) and repaired it, which confirms I12 in practice. `run_all_tests` gave 9/9 PASS on that shipped model.
 
-### 5.2 Scenario runs: 7 scenarios × 3 controllers on both engines (MATLAB R2026a)
+### 4.2 Scenario runs: 7 scenarios × 3 controllers on both engines (MATLAB R2026a)
 **20/21 PASS on both engines, and all 21 verdicts agree.** The single FAIL is PD on the PE scan: without model feedforward it lags the moving reference by about 1.5°, which is a genuine limitation, not a bug. On the deterministic scenarios, Simulink matches the reference engine to ≤ 2.3e-10° (≤ 2.3e-5° in the momentum-saturated slews, from the limited-integrator vs post-step clamp). For sensor noise the RNG streams differ (I14). Wall-clock time per run in Simulink is about 1.3–2.3 s (400–2000 s simulated).
 
 Legend: t_s = settling time [s] (0.5° band); e_ss = mean steady-state error [deg]; τ_pk = peak wheel torque [N·m]; h_pk = peak wheel momentum [N·m·s]; θ̂ err = final inertia-estimate error [%]; max|Δ| = max |att_err_Simulink − att_err_reference| [deg]. Controllers are listed Robust / Adaptive / PD in every row.
@@ -182,7 +168,7 @@ Anti-windup ablation (150° slew, adaptive): with the freeze off, e_ss = 0.102°
 
 ---
 
-## 6. References
+## 5. References
 [1] S.-C. Lo and Y.-P. Chen, "Smooth sliding-mode control for spacecraft attitude tracking maneuvers," *J. Guidance, Control, and Dynamics*, vol. 18, no. 6, pp. 1345–1349, 1995. doi:10.2514/3.21551 — VERIFIED
 [2] B. Wie and P. M. Barba, "Quaternion feedback for spacecraft large angle maneuvers," *J. Guidance, Control, and Dynamics*, vol. 8, no. 3, pp. 360–365, 1985. doi:10.2514/3.19988 — VERIFIED
 [3] J. T.-Y. Wen and K. Kreutz-Delgado, "The attitude control problem," *IEEE Trans. Automatic Control*, vol. 36, no. 10, pp. 1148–1162, 1991. doi:10.1109/9.90228 — VERIFIED

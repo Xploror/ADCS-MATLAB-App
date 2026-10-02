@@ -211,5 +211,3 @@ Units are SI internally. Degrees appear only in cfg fields suffixed `_deg` or `_
 - the verification record;
 - future directions;
 - the verified reference list.
-
-`docs/technical_report.pdf` presents the models, derivations and results.
