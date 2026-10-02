@@ -1,12 +1,12 @@
 function results = runSimulinkBatch(SC, RG, AG, BG, ctrl_ids)
-%RUNSIMULINKBATCH Run the Simulink harness once per controller and return result structs.
+% Run the Simulink harness once per controller and return result structs.
 %
 % Inputs:
 %   SC       - struct, sim-level spacecraft/scenario parameters (spec 4.2) [mixed SI]
 %   RG       - struct, robust SMC gains (RobustGains)                      [mixed SI]
 %   AG       - struct, adaptive SMC gains (AdaptiveGains)                  [mixed SI]
 %   BG       - struct, PD benchmark gains (BaselineGains)                  [mixed SI]
-%   ctrl_ids - double [1xK], controller ids to run (1, 2 and/or 3)         [-]
+%   ctrl_ids - double [1xK], controller ids to run (1, 2 and/or 3)         
 % Outputs:
 %   results  - struct [1xK], result structs (spec section 6), one per
 %              element of ctrl_ids, engine = 'simulink'                     [mixed]
@@ -25,15 +25,15 @@ function results = runSimulinkBatch(SC, RG, AG, BG, ctrl_ids)
 
 %% ===== Checks and paths =====
 if nargin < 5 || isempty(ctrl_ids)
-    ctrl_ids = [1 2 3];                                  % [-] default: all three controllers
+    ctrl_ids = [1 2 3];                                  %  default: all three controllers
 end
 ctrl_ids = double(ctrl_ids(:)');
 if any(~ismember(ctrl_ids, [1 2 3]))
     error('runSimulinkBatch:badCtrl', 'ctrl_ids must contain only 1, 2 or 3.');
 end
 mdl     = ensureModelBuilt();                            % builds (if needed) and loads the model
-rootDir = fileparts(fileparts(fileparts(mfilename('fullpath')))); % [-] project root
-K       = numel(ctrl_ids);                               % [-] number of runs
+rootDir = fileparts(fileparts(fileparts(mfilename('fullpath')))); %  project root
+K       = numel(ctrl_ids);                               %  number of runs
 
 %% ===== Build the SimulationInput array =====
 for k = 1:K
@@ -53,17 +53,17 @@ for k = 1:K
 end
 
 %% ===== Decide on parsim (only with an already open pool) =====
-usePar = false;                                          % [-] true -> try parsim first
+usePar = false;                                          %  true -> try parsim first
 if K > 1
     try
         hasPCT = logical(license('test', 'Distrib_Computing_Toolbox')) && ~isempty(ver('parallel'));
-        pool   = gcp('nocreate');                        % [-] existing pool only; never start one here
+        pool   = gcp('nocreate');                        %  existing pool only; never start one here
         usePar = hasPCT && ~isempty(pool);
         %% ===== Instance-limit guard (PROJECT_RULES R8) =====
         % A GUI MATLAB session may be the only MATLAB instance, so no pool
         % workers are used. Headless, the client plus its workers must stay
         % at or below 3 instances, i.e. at most 2 workers.
-        maxWorkersHeadless = 2;                          % [-] 3 instances total minus the client
+        maxWorkersHeadless = 2;                          %  3 instances total minus the client
         if usePar && (usejava('desktop') || pool.NumWorkers > maxWorkersHeadless)
             usePar = false;
         end
@@ -142,16 +142,16 @@ results = [cells{:}];
 end
 
 function txt = collectCauses(err, depth)
-%COLLECTCAUSES Flatten an MException and all its nested causes into one message.
+% Flatten an MException and all its nested causes into one message.
 %
 % Inputs:
-%   err   - MException / MSLException / MSLDiagnostic, the error         [-]
-%   depth - double scalar, nesting level (0 for the top-level error)     [-]
+%   err   - MException / MSLException / MSLDiagnostic, the error         
+%   depth - double scalar, nesting level (0 for the top-level error)     
 % Outputs:
-%   txt   - char, the message and every nested cause, indented by level  [-]
+%   txt   - char, the message and every nested cause, indented by level  
 
 %% ===== This level =====
-pad = repmat('  ', 1, depth);                            % [-] indentation for this level
+pad = repmat('  ', 1, depth);                            %  indentation for this level
 if isempty(err.identifier)
     txt = sprintf('%s%s', pad, err.message);             % no empty "[]" prefix (critic F9)
 else

@@ -1,8 +1,8 @@
 function M = computeMetrics(res, cfg)
-%COMPUTEMETRICS Performance metrics of one simulation result (docs/DESIGN_SPEC.md 5.1).
+% Performance metrics of one simulation result.
 %
 % Inputs:
-%   res - struct, result struct (spec section 6)                         [mixed]
+%   res - struct, result struct                         [mixed]
 %   cfg - struct, user config; uses cfg.metrics.settle_thresh_deg [deg]
 %         and cfg.metrics.ss_window_frac [-] (defaults 0.5 and 0.1 if absent)
 % Outputs:
@@ -18,13 +18,13 @@ function M = computeMetrics(res, cfg)
 
 %% ===== Settings =====
 thresh = 0.5;                                            % [deg] default settling threshold
-frac = 0.1;                                              % [-] default steady-state window fraction
+frac = 0.1;                                              % default steady-state window fraction
 if nargin > 1 && isstruct(cfg) && isfield(cfg, 'metrics')
     if isfield(cfg.metrics, 'settle_thresh_deg'), thresh = cfg.metrics.settle_thresh_deg; end
     if isfield(cfg.metrics, 'ss_window_frac'),    frac   = cfg.metrics.ss_window_frac;    end
 end
-t = res.t(:);
-e = res.att_err_deg(:);
+t = res.t;
+e = res.att_err_deg;
 N = numel(t);
 T = t(end) - t(1);
 
@@ -82,7 +82,7 @@ end
 
 %% ===== Local functions =====
 function I = localTrapz(t, y)
-%LOCALTRAPZ Trapezoidal integral of y(t).
+% Trapezoidal integral of y(t).
 %
 % Inputs:
 %   t - double [Nx1], time samples                                        [s]

@@ -1,10 +1,10 @@
 function mdl = ensureModelBuilt()
-%ENSUREMODELBUILT Build the Simulink harness if it is missing, then load it.
+% Build the Simulink harness if it is missing, then load it.
 %
 % Inputs:
 %   (none)
 % Outputs:
-%   mdl - char [1xM], model name 'ADCS_ComparisonHarness' (optional output) [-]
+%   mdl - char [1xM], model name 'ADCS_ComparisonHarness' (optional output)
 %
 % If models/ADCS_ComparisonHarness.slx is missing, build_ADCS_model(false) is
 % called. If only the data dictionary is missing, the model is rebuilt with
@@ -12,11 +12,11 @@ function mdl = ensureModelBuilt()
 % added to the MATLAB path so the dictionary can be resolved by file name.
 
 %% ===== Paths =====
-mdl       = 'ADCS_ComparisonHarness';                    % [-] model name
-rootDir   = fileparts(fileparts(fileparts(mfilename('fullpath')))); % [-] project root (src/sim/..)
-modelsDir = fullfile(rootDir, 'models');                 % [-] models folder
-slxPath   = fullfile(modelsDir, [mdl '.slx']);           % [-] model file
-ddPath    = fullfile(modelsDir, 'ADCS_Params.sldd');     % [-] dictionary file
+mdl       = 'ADCS_ComparisonHarness';                    %  model name
+rootDir   = fileparts(fileparts(fileparts(mfilename('fullpath')))); %  project root (src/sim/..)
+modelsDir = fullfile(rootDir, 'models');                 %  models folder
+slxPath   = fullfile(modelsDir, [mdl '.slx']);           %  model file
+ddPath    = fullfile(modelsDir, 'ADCS_Params.sldd');     %  dictionary file
 if ~any(strcmp(strsplit(path, pathsep), modelsDir))
     addpath(modelsDir);
 end

@@ -1,5 +1,5 @@
 function plotResultsOnAxes(ax, results, quantity, cfg)
-%PLOTRESULTSONAXES Overlay one quantity of all results on an axes or uiaxes handle.
+% Overlay one quantity of all results on an axes or uiaxes handle.
 %
 % Inputs:
 %   ax       - axes or uiaxes handle to draw into (cleared first)        [-]
