@@ -1,17 +1,17 @@
 function [mdl, info] = build_ADCS_model(overwrite, injectMiswire)
-%BUILD_ADCS_MODEL Programmatically generate the Simulink harness ADCS_ComparisonHarness and its data dictionary.
+% Programmatically generate the Simulink harness ADCS_ComparisonHarness and its data dictionary.
 %
 % Inputs:
-%   overwrite     - logical/double [1], true = rebuild even if the .slx exists  [-]
+%   overwrite     - logical/double [1], true = rebuild even if the .slx exists  
 %                   (optional, default false)
 %   injectMiswire - logical/double [1], TEST HOOK: true = deliberately re-route
 %                   TrueErr input w_r to the q_r signal after grouping, to
 %                   exercise the wire verify-and-repair path (optional,
-%                   default false; see tests/check_model_wiring_repair.m)    [-]
+%                   default false; see tests/check_model_wiring_repair.m)    
 % Outputs:
-%   mdl       - char [1xM], name of the generated model ('ADCS_ComparisonHarness') [-]
-%   info      - struct, build diagnostics: nWires (wires verified) [-],
-%               nRepaired (wires re-routed after grouping) [-]
+%   mdl       - char [1xM], name of the generated model ('ADCS_ComparisonHarness') 
+%   info      - struct, build diagnostics: nWires (wires verified) ,
+%               nRepaired (wires re-routed after grouping) 
 %
 % Generated files (next to this script, in models/):
 %   ADCS_ComparisonHarness.slx  - the three-controller comparison harness
@@ -66,18 +66,18 @@ function [mdl, info] = build_ADCS_model(overwrite, injectMiswire)
 
 %% ===== Arguments and paths =====
 if nargin < 1 || isempty(overwrite)
-    overwrite = false;                                   % [-] default: keep an existing model
+    overwrite = false;                                   %  default: keep an existing model
 end
 if nargin < 2 || isempty(injectMiswire)
-    injectMiswire = false;                               % [-] default: no fault injection
+    injectMiswire = false;                               %  default: no fault injection
 end
-info = struct('nWires', 0, 'nRepaired', 0);              % [-] build diagnostics
-mdl       = 'ADCS_ComparisonHarness';                    % [-] model name (spec section 7)
-ddName    = 'ADCS_Params.sldd';                          % [-] data dictionary file name
-modelsDir = fileparts(mfilename('fullpath'));            % [-] absolute path of models/
-rootDir   = fileparts(modelsDir);                        % [-] project root
-slxPath   = fullfile(modelsDir, [mdl '.slx']);           % [-] model file
-ddPath    = fullfile(modelsDir, ddName);                 % [-] dictionary file
+info = struct('nWires', 0, 'nRepaired', 0);              %  build diagnostics
+mdl       = 'ADCS_ComparisonHarness';                    %  model name (spec section 7)
+ddName    = 'ADCS_Params.sldd';                          %  data dictionary file name
+modelsDir = fileparts(mfilename('fullpath'));            %  absolute path of models/
+rootDir   = fileparts(modelsDir);                        %  project root
+slxPath   = fullfile(modelsDir, [mdl '.slx']);           %  model file
+ddPath    = fullfile(modelsDir, ddName);                 %  dictionary file
 
 if isfile(slxPath) && ~overwrite
     fprintf('build_ADCS_model: %s already exists (overwrite = false), nothing to do.\n', slxPath);
@@ -117,7 +117,7 @@ end
 %% ===== Default parameter values =====
 cfg = initDefaults();                                    % user-level defaults
 [SC, RG, AG, BG] = buildSimParams(cfg);                  % sim-level numeric structs
-CONTROLLER_SELECT = 1;                                   % [-] 1=Robust SMC, 2=Adaptive SMC, 3=PD
+CONTROLLER_SELECT = 1;                                   %  1=Robust SMC, 2=Adaptive SMC, 3=PD
 
 %% ===== Data dictionary =====
 dd  = Simulink.data.dictionary.create(ddPath);
@@ -174,10 +174,10 @@ for i = 1:size(noiseSpecs, 1)
     y0 = 300 + 70*(i-1);                                 % [px] vertical position
     B = addSimpleBlock(mdl, B, noiseSpecs{i,1}, 'simulink/Sources/Random Number', ...
         {}, {'n'}, [cx(1) y0 cx(1)+40 y0+30], ...
-        {'Mean', '[0;0;0]', ...                          % [-] zero-mean
-         'Variance', '[1;1;1]', ...                      % [-] unit variance
-         'VectorParams1D', 'off', ...                    % [-] keep the [3x1] column shape
-         'Seed', noiseSpecs{i,2}, ...                    % [-] per-axis seeds
+        {'Mean', '[0;0;0]', ...                          %  zero-mean
+         'Variance', '[1;1;1]', ...                      %  unit variance
+         'VectorParams1D', 'off', ...                    %  keep the [3x1] column shape
+         'Seed', noiseSpecs{i,2}, ...                    %  per-axis seeds
          'SampleTime', 'SC.dt'});                        % [s] held for one step
 end
 
@@ -224,7 +224,7 @@ B = addMatlabFcnBlock(mdl, B, 'TrueErr', 'trueErrors', ...
 %% ===== Integrators =====
 intPath = 'simulink/Continuous/Integrator';              % library path
 B = addSimpleBlock(mdl, B, 'IntQ', intPath, {'u'}, {'y'}, [cx(7) 460 cx(7)+40 500], ...
-    {'InitialCondition', 'SC.q0'});                      % [-] raw quaternion state
+    {'InitialCondition', 'SC.q0'});                      %  raw quaternion state
 B = addSimpleBlock(mdl, B, 'IntW', intPath, {'u'}, {'y'}, [cx(7) 540 cx(7)+40 580], ...
     {'InitialCondition', 'SC.w0'});                      % [rad/s] body rate state
 B = addSimpleBlock(mdl, B, 'IntHw', intPath, {'u'}, {'y'}, [cx(6) 300 cx(6)+40 340], ...
@@ -385,7 +385,7 @@ end
 if injectMiswire
     injectWireFault(mdl, B);                             % test hook: reproduce the R2026a mis-wire
 end
-nFixed = 0;                                              % [-] number of repaired wires
+nFixed = 0;                                              %  number of repaired wires
 for i = 1:size(W, 1)
     if ~wireIsCorrect(B, W(i,:))
         repairWire(mdl, B, W(i,:));
@@ -441,16 +441,16 @@ function B = addSimpleBlock(mdl, B, blkName, libPath, inNames, outNames, pos, pa
 %ADDSIMPLEBLOCK Add a library block, set its parameters and register its port names.
 %
 % Inputs:
-%   mdl      - char, model name                                        [-]
-%   B        - struct, block registry (fields = block names)           [-]
-%   blkName  - char, block name (valid MATLAB identifier)              [-]
-%   libPath  - char, library block path, e.g. 'simulink/Sinks/Terminator' [-]
-%   inNames  - cell 1xNi of char, names of input ports in port order    [-]
-%   outNames - cell 1xNo of char, names of output ports in port order   [-]
+%   mdl      - char, model name                                        
+%   B        - struct, block registry (fields = block names)           
+%   blkName  - char, block name (valid MATLAB identifier)              
+%   libPath  - char, library block path, e.g. 'simulink/Sinks/Terminator' 
+%   inNames  - cell 1xNi of char, names of input ports in port order    
+%   outNames - cell 1xNo of char, names of output ports in port order   
 %   pos      - double [1x4], block Position [left top right bottom]    [px]
-%   params   - cell 1x2P, name/value pairs passed to set_param          [-]
+%   params   - cell 1x2P, name/value pairs passed to set_param          
 % Outputs:
-%   B        - struct, registry with B.(blkName).inNames/.outNames/.path added [-]
+%   B        - struct, registry with B.(blkName).inNames/.outNames/.path added 
 blkPath = [mdl '/' blkName];
 add_block(libPath, blkPath, 'Position', pos);
 if ~isempty(params)
@@ -463,19 +463,19 @@ function B = addMatlabFcnBlock(mdl, B, blkName, libFcn, inNames, paramNames, out
 %ADDMATLABFCNBLOCK Add a MATLAB Function block whose script is a thin wrapper around a library function.
 %
 % Inputs:
-%   mdl        - char, model name                                        [-]
-%   B          - struct, block registry                                  [-]
-%   blkName    - char, block name                                        [-]
-%   libFcn     - char, library function called by the wrapper            [-]
-%   inNames    - cell 1xNi of char, signal inputs; ORDER = port order    [-]
-%   paramNames - cell 1xNp of char, Stateflow Parameter-scope data       [-]
+%   mdl        - char, model name                                        
+%   B          - struct, block registry                                  
+%   blkName    - char, block name                                        
+%   libFcn     - char, library function called by the wrapper            
+%   inNames    - cell 1xNi of char, signal inputs; ORDER = port order    
+%   paramNames - cell 1xNp of char, Stateflow Parameter-scope data       
 %   outNames   - cell 1xNo of char, outputs; ORDER = port order and the
-%                output order of libFcn                                   [-]
+%                output order of libFcn                                   
 %   callArgs   - cell, argument list of libFcn in its own order; each
-%                entry must be a member of inNames or paramNames          [-]
+%                entry must be a member of inNames or paramNames          
 %   pos        - double [1x4], block Position                            [px]
 % Outputs:
-%   B          - struct, registry with B.(blkName) added                 [-]
+%   B          - struct, registry with B.(blkName) added                 
 
 %% ===== Consistency checks on the name lists =====
 allData = [inNames(:); paramNames(:)];
@@ -555,9 +555,9 @@ function sz = portSize(name)
 %PORTSIZE Fixed size of a MATLAB Function block port, looked up by its signal name.
 %
 % Inputs:
-%   name - char, port/signal name used in the wrappers                   [-]
+%   name - char, port/signal name used in the wrappers                   
 % Outputs:
-%   sz   - char, Stateflow size string, e.g. '[4 1]'                     [-]
+%   sz   - char, Stateflow size string, e.g. '[4 1]'                     
 switch name
     case {'tsim', 'qnorm', 'att_err_deg'}
         sz = '[1 1]';                                    % scalars
@@ -578,13 +578,13 @@ function codeStr = makeWrapperScript(libFcn, inNames, paramNames, outNames, call
 %MAKEWRAPPERSCRIPT Build the MATLAB Function block code that forwards to a library function.
 %
 % Inputs:
-%   libFcn     - char, library function name                             [-]
-%   inNames    - cell of char, signal inputs in port order               [-]
-%   paramNames - cell of char, parameter names                           [-]
-%   outNames   - cell of char, outputs in port order                     [-]
-%   callArgs   - cell of char, arguments of libFcn in its order          [-]
+%   libFcn     - char, library function name                             
+%   inNames    - cell of char, signal inputs in port order               
+%   paramNames - cell of char, parameter names                           
+%   outNames   - cell of char, outputs in port order                     
+%   callArgs   - cell of char, arguments of libFcn in its order          
 % Outputs:
-%   codeStr    - char [1xL], script text (lines separated by char(10))   [-]
+%   codeStr    - char [1xL], script text (lines separated by char(10))   
 %
 % Signal inputs are forwarded as name(:) so that 1-D Simulink vectors (e.g.
 % from Random Number blocks) always reach the library as column vectors.
@@ -614,10 +614,10 @@ function enforcePortOrder(ch, blkPath, names, scope)
 %ENFORCEPORTORDER Check that Stateflow data of a given scope have Port = position in NAMES.
 %
 % Inputs:
-%   ch      - Stateflow.EMChart, chart of the MATLAB Function block      [-]
-%   blkPath - char, block path (for messages)                            [-]
-%   names   - cell of char, expected order of the ports                  [-]
-%   scope   - char, 'Input' or 'Output'                                  [-]
+%   ch      - Stateflow.EMChart, chart of the MATLAB Function block      
+%   blkPath - char, block path (for messages)                            
+%   names   - cell of char, expected order of the ports                  
+%   scope   - char, 'Input' or 'Output'                                  
 % Outputs:
 %   (none; errors if the order cannot be established)
 
@@ -647,12 +647,12 @@ function wire(mdl, B, src, srcOut, dst, dstIn)
 %WIRE Connect a named output port to a named input port (port numbers from the registry).
 %
 % Inputs:
-%   mdl    - char, model name                                            [-]
-%   B      - struct, block registry                                      [-]
-%   src    - char, source block name                                     [-]
-%   srcOut - char, output-port name of the source block                  [-]
-%   dst    - char, destination block name                                [-]
-%   dstIn  - char, input-port name of the destination block              [-]
+%   mdl    - char, model name                                            
+%   B      - struct, block registry                                      
+%   src    - char, source block name                                     
+%   srcOut - char, output-port name of the source block                  
+%   dst    - char, destination block name                                
+%   dstIn  - char, input-port name of the destination block              
 % Outputs:
 %   (none; adds a line or a branch to mdl)
 sp = portIndex(B, src, srcOut, 'outNames');
@@ -664,12 +664,12 @@ function idx = portIndex(B, blk, portName, listField)
 %PORTINDEX Look up a port number by name in the block registry.
 %
 % Inputs:
-%   B         - struct, block registry                                   [-]
-%   blk       - char, block name                                         [-]
-%   portName  - char, port name                                          [-]
-%   listField - char, 'inNames' or 'outNames'                            [-]
+%   B         - struct, block registry                                   
+%   blk       - char, block name                                         
+%   portName  - char, port name                                          
+%   listField - char, 'inNames' or 'outNames'                            
 % Outputs:
-%   idx       - double [1], 1-based port number                          [-]
+%   idx       - double [1], 1-based port number                          
 if ~isfield(B, blk)
     error('build_ADCS_model:noBlock', 'Block %s is not registered.', blk);
 end
@@ -683,10 +683,10 @@ function logSignal(B, blk, outName, sigName)
 %LOGSIGNAL Name the line leaving an output port and enable signal logging on that port.
 %
 % Inputs:
-%   B       - struct, block registry (with current block paths)          [-]
-%   blk     - char, source block name                                    [-]
-%   outName - char, output-port name in the registry                     [-]
-%   sigName - char, signal/logging name (a res field name)               [-]
+%   B       - struct, block registry (with current block paths)          
+%   blk     - char, source block name                                    
+%   outName - char, output-port name in the registry                     
+%   sigName - char, signal/logging name (a res field name)               
 % Outputs:
 %   (none)
 ph = nameLine(B, blk, outName, sigName);
@@ -705,12 +705,12 @@ function ph = nameLine(B, blk, outName, sigName)
 %NAMELINE Set the name of the line connected to a named output port.
 %
 % Inputs:
-%   B       - struct, block registry (with current block paths)          [-]
-%   blk     - char, source block name                                    [-]
-%   outName - char, output-port name in the registry                     [-]
-%   sigName - char, line name                                            [-]
+%   B       - struct, block registry (with current block paths)          
+%   blk     - char, source block name                                    
+%   outName - char, output-port name in the registry                     
+%   sigName - char, line name                                            
 % Outputs:
-%   ph      - double [1], handle of the output port                      [-]
+%   ph      - double [1], handle of the output port                      
 k   = portIndex(B, blk, outName, 'outNames');
 phs = get_param(B.(blk).path, 'PortHandles');
 ph  = phs.Outport(k);
@@ -725,7 +725,7 @@ function checkAllPortsConnected(B)
 %CHECKALLPORTSCONNECTED Error if any registered block has an unconnected input or output port.
 %
 % Inputs:
-%   B   - struct, block registry (with current block paths)              [-]
+%   B   - struct, block registry (with current block paths)              
 % Outputs:
 %   (none; errors listing every unconnected port)
 
@@ -762,9 +762,9 @@ function groupBlocks(mdl, blkNames, subName)
 %GROUPBLOCKS Group top-level blocks into a new subsystem and rename it.
 %
 % Inputs:
-%   mdl      - char, model name                                          [-]
-%   blkNames - cell of char, names of top-level blocks to group          [-]
-%   subName  - char, name for the created subsystem                      [-]
+%   mdl      - char, model name                                          
+%   blkNames - cell of char, names of top-level blocks to group          
+%   subName  - char, name for the created subsystem                      
 % Outputs:
 %   (none)
 
@@ -789,10 +789,10 @@ function tf = wireIsCorrect(B, w)
 %WIREISCORRECT True if the destination port of a wire is fed by the intended source port.
 %
 % Inputs:
-%   B  - struct, block registry (with post-grouping paths)               [-]
-%   w  - cell [1x4], {srcBlock, srcOutName, dstBlock, dstInName}          [-]
+%   B  - struct, block registry (with post-grouping paths)               
+%   w  - cell [1x4], {srcBlock, srcOutName, dstBlock, dstInName}          
 % Outputs:
-%   tf - logical [1], true if the traced leaf source matches             [-]
+%   tf - logical [1], true if the traced leaf source matches             
 [sb, sp] = traceLeafSource(B.(w{3}).path, portIndex(B, w{3}, w{4}, 'inNames'));
 tf = sb ~= -1 && strcmp(getfullname(sb), B.(w{1}).path) && ...
      sp == portIndex(B, w{1}, w{2}, 'outNames');
@@ -802,11 +802,11 @@ function [sb, sp] = traceLeafSource(blkPath, inPort)
 %TRACELEAFSOURCE Follow the line into an input port back through subsystem boundaries.
 %
 % Inputs:
-%   blkPath - char, destination block path                               [-]
-%   inPort  - double [1], 1-based input port number                      [-]
+%   blkPath - char, destination block path                               
+%   inPort  - double [1], 1-based input port number                      
 % Outputs:
-%   sb      - double [1], handle of the leaf source block (-1 if open)   [-]
-%   sp      - double [1], 1-based output port number on sb               [-]
+%   sb      - double [1], handle of the leaf source block (-1 if open)   
+%   sp      - double [1], 1-based output port number on sb               
 
 %% ===== Start at the line entering the destination port =====
 sb = -1;  sp = 0;
@@ -814,7 +814,7 @@ phs = get_param(blkPath, 'PortHandles');
 ln  = get_param(phs.Inport(inPort), 'Line');
 
 %% ===== Walk backwards across Inport / Outport boundaries =====
-for guard = 1:20                                         % [-] max boundary crossings
+for guard = 1:20                                         %  max boundary crossings
     if ln == -1, return; end
     srcPort = get_param(ln, 'SrcPortHandle');
     if srcPort == -1, return; end
@@ -845,9 +845,9 @@ function repairWire(mdl, B, w)
 %REPAIRWIRE Re-route one wire so its destination port is fed by the intended source port, leaving no orphans.
 %
 % Inputs:
-%   mdl - char, model name                                               [-]
-%   B   - struct, block registry (with post-grouping paths)              [-]
-%   w   - cell [1x4], {srcBlock, srcOutName, dstBlock, dstInName}         [-]
+%   mdl - char, model name                                               
+%   B   - struct, block registry (with post-grouping paths)              
+%   w   - cell [1x4], {srcBlock, srcOutName, dstBlock, dstInName}         
 % Outputs:
 %   (none; modifies the model)
 %
@@ -861,10 +861,10 @@ function repairWire(mdl, B, w)
 % A source-subsystem output left without any line is closed with a Terminator.
 
 %% ===== Ports and containing subsystems =====
-sp  = portIndex(B, w{1}, w{2}, 'outNames');              % [-] source output port
-dp  = portIndex(B, w{3}, w{4}, 'inNames');               % [-] destination input port
-srcSys  = get_param(B.(w{1}).path, 'Parent');            % [-] subsystem holding the source
-dstSys  = get_param(B.(w{3}).path, 'Parent');            % [-] subsystem holding the destination
+sp  = portIndex(B, w{1}, w{2}, 'outNames');              %  source output port
+dp  = portIndex(B, w{3}, w{4}, 'inNames');               %  destination input port
+srcSys  = get_param(B.(w{1}).path, 'Parent');            %  subsystem holding the source
+dstSys  = get_param(B.(w{3}).path, 'Parent');            %  subsystem holding the destination
 srcName = get_param(B.(w{1}).path, 'Name');
 dstName = get_param(B.(w{3}).path, 'Name');
 dstPH   = get_param(B.(w{3}).path, 'PortHandles');
@@ -885,14 +885,14 @@ end
 oPort = sourceSubsystemPort(srcSys, B.(w{1}).path, srcName, sp, w{2});
 
 %% ===== Destination side: which Inport feeds the destination now? =====
-inBlk = -1;                                              % [-] feeding Inport block handle
+inBlk = -1;                                              %  feeding Inport block handle
 if ln ~= -1
     s = get_param(ln, 'SrcPortHandle');
     if s ~= -1 && strcmp(get_param(get_param(s, 'Parent'), 'BlockType'), 'Inport')
         inBlk = get_param(get_param(s, 'Parent'), 'Handle');
     end
 end
-nUsers = 0;                                              % [-] destinations fed by that Inport
+nUsers = 0;                                              %  destinations fed by that Inport
 if inBlk ~= -1
     pc = get_param(inBlk, 'PortConnectivity');
     nUsers = numel(pc(end).DstBlock);
@@ -902,7 +902,7 @@ dstSysName = get_param(dstSys, 'Name');
 
 if inBlk ~= -1 && nUsers == 1
     %% ===== Case A: dedicated Inport -> re-point the top-level line =====
-    xPort = str2double(get_param(inBlk, 'Port'));        % [-] subsystem input number
+    xPort = str2double(get_param(inBlk, 'Port'));        %  subsystem input number
     sysPH = get_param(dstSys, 'PortHandles');
     lTop  = get_param(sysPH.Inport(xPort), 'Line');
     if lTop ~= -1
@@ -931,13 +931,13 @@ function oPort = sourceSubsystemPort(srcSys, srcPath, srcName, sp, tag)
 %SOURCESUBSYSTEMPORT Number of the subsystem output that carries a given inner source port (created if absent).
 %
 % Inputs:
-%   srcSys  - char, path of the subsystem holding the source block       [-]
-%   srcPath - char, full path of the source block                        [-]
-%   srcName - char, name of the source block                             [-]
-%   sp      - double [1], 1-based output port of the source block        [-]
-%   tag     - char, base name for a new Outport block                    [-]
+%   srcSys  - char, path of the subsystem holding the source block       
+%   srcPath - char, full path of the source block                        
+%   srcName - char, name of the source block                             
+%   sp      - double [1], 1-based output port of the source block        
+%   tag     - char, base name for a new Outport block                    
 % Outputs:
-%   oPort   - double [1], 1-based output port number of srcSys           [-]
+%   oPort   - double [1], 1-based output port number of srcSys           
 
 %% ===== Reuse an existing Outport fed by the source port =====
 oPort = 0;
@@ -964,8 +964,8 @@ function closeIfOpen(mdl, portH)
 %CLOSEIFOPEN Terminate a top-level subsystem output port that no longer drives any line.
 %
 % Inputs:
-%   mdl   - char, model name                                             [-]
-%   portH - double [1], output-port handle to check                      [-]
+%   mdl   - char, model name                                             
+%   portH - double [1], output-port handle to check                      
 % Outputs:
 %   (none; adds a Terminator if the port is open)
 if get_param(portH, 'Line') == -1
@@ -979,8 +979,8 @@ function injectWireFault(mdl, B)
 %INJECTWIREFAULT Test hook: re-route TrueErr input w_r to the q_r signal at top level (the R2026a symptom).
 %
 % Inputs:
-%   mdl - char, model name                                               [-]
-%   B   - struct, block registry (with post-grouping paths)              [-]
+%   mdl - char, model name                                               
+%   B   - struct, block registry (with post-grouping paths)              
 % Outputs:
 %   (none; modifies the model)
 
@@ -1006,9 +1006,9 @@ function x = localInportNumber(inPortH)
 %LOCALINPORTNUMBER Port number of the Inport block that drives a given block input port.
 %
 % Inputs:
-%   inPortH - double [1], input-port handle of a block inside a subsystem [-]
+%   inPortH - double [1], input-port handle of a block inside a subsystem 
 % Outputs:
-%   x       - double [1], the 'Port' number of the driving Inport block   [-]
+%   x       - double [1], the 'Port' number of the driving Inport block   
 s = get_param(get_param(inPortH, 'Line'), 'SrcPortHandle');
 x = str2double(get_param(get_param(s, 'Parent'), 'Port'));
 end
@@ -1017,7 +1017,7 @@ function checkNoOpenPorts(mdl)
 %CHECKNOOPENPORTS Error if any block at the top level or inside the grouped subsystems has an open port.
 %
 % Inputs:
-%   mdl - char, model name                                               [-]
+%   mdl - char, model name                                               
 % Outputs:
 %   (none; errors listing every unconnected port, critic finding F3)
 

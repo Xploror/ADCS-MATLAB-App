@@ -1,10 +1,10 @@
 function pushParamsToDictionary(cfg, ctrl_id)
-%PUSHPARAMSTODICTIONARY Overwrite the ADCS_Params.sldd entries with values derived from a user config.
+% Overwrite the ADCS_Params.sldd entries with values derived from a user config.
 %
 % Inputs:
 %   cfg     - struct, user-level configuration (see initDefaults / spec 4.1) [mixed]
 %   ctrl_id - double [1], controller to select: 1 Robust SMC,
-%             2 Adaptive SMC, 3 PD benchmark (optional, default 1)          [-]
+%             2 Adaptive SMC, 3 PD benchmark (optional, default 1)
 % Outputs:
 %   (none; ADCS_Params.sldd is modified and saved)
 %
