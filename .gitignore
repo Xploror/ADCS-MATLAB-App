@@ -8,4 +8,4 @@ models/ADCS_Params.sldd
 config/saved/*.mat
 
 notes.md
-PROJECT_RULES.md
+docs/DESIGN_SPEC.md
