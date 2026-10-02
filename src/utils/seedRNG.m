@@ -1,8 +1,8 @@
 function seedRNG(seed)
-%SEEDRNG Seed the global random generators (MATLAB rng / Octave rand,randn state).
+% Seed the global random generators (MATLAB rng / Octave rand,randn state).
 %
 % Inputs:
-%   seed - double [1], non-negative integer seed                          [-]
+%   seed - double [1], non-negative integer seed
 % Outputs:
 %   (none)
 %
