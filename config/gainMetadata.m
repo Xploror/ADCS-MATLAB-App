@@ -1,5 +1,5 @@
 function meta = gainMetadata()
-%GAINMETADATA Descriptions of every user gain field (drives GUI field generation).
+% Descriptions of every user gain field (drives GUI field generation).
 %
 % Inputs:
 %   (none)

@@ -1,10 +1,10 @@
 function list = listScenarios()
-%LISTSCENARIOS Registry of predefined scenario functions and their display names.
+% Registry of predefined scenario functions and their display names.
 %
 % Inputs:
 %   (none)
 % Outputs:
-%   list - cell [Kx2], {func_name, display_name}                         [-]
+%   list - cell [Kx2], {func_name, display_name}
 
 list = { ...
   'scn_nominal',                    'Nominal docking approach'; ...
