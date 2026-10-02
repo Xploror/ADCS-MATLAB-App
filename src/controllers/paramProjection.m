@@ -12,7 +12,7 @@ function thdot = paramProjection(theta_hat, thdot, th_min, th_max)
 %               active bound set to zero
 
 for i = 1:numel(thdot)
-    if (theta_hat(i) >= th_max(i) && thdot_raw(i) > 0) || (theta_hat(i) <= th_min(i) && thdot_raw(i) < 0)
+    if (theta_hat(i) >= th_max(i) && thdot(i) > 0) || (theta_hat(i) <= th_min(i) && thdot(i) < 0)
         thdot(i) = 0;
     end
 end
