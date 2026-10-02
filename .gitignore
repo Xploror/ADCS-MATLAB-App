@@ -6,3 +6,6 @@ slprj/
 models/ADCS_ComparisonHarness.slx
 models/ADCS_Params.sldd
 config/saved/*.mat
+
+notes.md
+PROJECT_RULES.md
