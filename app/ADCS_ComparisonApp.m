@@ -4,7 +4,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
 %
 %   The App edits user-level configuration struct, runs runSimulation(),
 %   evaluates metrics and flags (computeMetrics/evaluatePassFail) and plots
-%   the results (plotResultsOnAxis)
+%   the results (plotResultsOnAxes)
 %
 %   Controllers: 1 Robust SMC 
 %                2 Adaptive SMC (online inertia estimation)
