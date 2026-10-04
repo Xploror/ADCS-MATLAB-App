@@ -9,9 +9,9 @@ function passed = check_model_wiring_repair()
 % NOT auto-discovered by run_all_tests (its name does not start with
 % "test_") because it rebuilds the Simulink model twice (minutes). Steps:
 %   1. build_ADCS_model(true, true): the test hook re-routes TrueErr input
-%      w_r to the q_r signal after grouping (the defect seen in R2026a, see
-%      notes.md I12). The build must detect and repair exactly this wire and
-%      leave no unconnected port (checkNoOpenPorts runs inside the build).
+%      w_r to the q_r signal after grouping (the defect seen in R2026a). 
+%      The build must detect and repair exactly this wire and leave no 
+%      unconnected port (checkNoOpenPorts runs inside the build).
 %   2. test_simulink_vs_reference must PASS on the repaired model.
 %   3. build_ADCS_model(true) rebuilds the clean model for normal use.
 % Prints SKIPPED and returns true when Simulink is not available.

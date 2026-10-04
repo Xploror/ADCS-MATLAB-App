@@ -17,7 +17,7 @@ function [q_m, w_m, b_dot] = sensorModel(q, w, b, n_att, n_gyro, n_bias, SC)
 %
 % Bias random walk: n_bias is held constant over one step dt, so
 % b_dot = sig_bias_rw/sqrt(dt)*n_bias gives the correct increment std
-% sig_bias_rw*sqrt(dt) per step (see implementation caveats in notes.md).
+% sig_bias_rw*sqrt(dt) per step.
 
 if SC.noise_enable > 0.5
     q_m = qNormalize(qMult(qFromRotVec(SC.sig_att*n_att), q));
