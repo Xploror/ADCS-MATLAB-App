@@ -17,7 +17,7 @@ You can change the initial conditions, the reference mode, inertia uncertainty, 
 
 ## Quick start (MATLAB)
 ```matlab
-cd ADCS_ComparisonTool
+cd ADCS-MATLAB-App
 startup_ADCS                 % add paths
 build_ADCS_model(true)       % generate models/ADCS_ComparisonHarness.slx + ADCS_Params.sldd (first time)
 run_all_tests                % unit tests + Simulink-vs-reference cross-check
@@ -50,7 +50,7 @@ src/        utils, reference, dynamics, disturbances, controllers, sim, analysis
 config/     initDefaults.m, gainMetadata.m, listScenarios.m, gains/, scenarios/, saved/
 tests/      run_all_tests.m, test_*.m, run_all_scenarios_smoketest.m, check_model_wiring_repair.m (opt-in)
 examples/   run_example_comparison.m
-docs/       DESIGN_SPEC.md (interface contract), technical_report.pdf, ADCS_Scenario_Reference_v1.1.0.pdf
+docs/       DESIGN_SPEC.md (interface contract), ADCS_Technical_Report.pdf
 ```
 
 ## Verification status (read this)
@@ -64,7 +64,6 @@ docs/       DESIGN_SPEC.md (interface contract), technical_report.pdf, ADCS_Scen
 
 ## Documentation
 - `CLAUDE.md`: orientation for developers and agents, covering the summary, terminology, inter- and intra-module dependencies, and the CODE-SCAN file check.
-- `docs/technical_report.pdf`: models, control-law derivations, architecture, verification results and discussion.
-- `docs/ADCS_Scenario_Reference_v1.1.0.pdf`: the seven App scenarios. It covers frames and initial-error geometry, all error variables and control-law equations, mission depictions, per-scenario performance analysis, and a state-space section (§11) that derives the adaptation law, the Lyapunov stability conditions and the persistent-excitation criterion.
+- `docs/ADCS_Technical_Report.pdf`: models, control-law derivations, architecture, verification results and discussion.
 - `.local/notes.md` (local-level, optional, git-excluded): caveats (including the critic's), deviations, research findings, future directions and the verified reference list. It is not shipped with the project. If it is missing, `CLAUDE.md` section 7 (CODE-SCAN) creates it in your own copy, under your approval.
 - `docs/DESIGN_SPEC.md`: conventions, equations, struct fields and signatures.

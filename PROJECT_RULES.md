@@ -3,9 +3,9 @@
 These rules are binding for every agent (human or AI) that develops this project.
 
 ## R1. Access scope
-- Development agents may only read, write, and delete files inside this folder, `ADCS_ComparisonTool/`. Nothing outside it may be touched.
-- Temporary files go in `ADCS_ComparisonTool/_tmp/`, which must be deleted before packaging.
-- Development agents do no web research. Citations and literature come from `docs/technical_report.pdf`, `docs/DESIGN_SPEC.md` and, if it exists, `.local/notes.md`. Anything else is requested from the user.
+- Development agents may only read, write, and delete files inside this folder, `ADCS-MATLAB-App/`. Nothing outside it may be touched.
+- Temporary files go in `ADCS-MATLAB-App/_tmp/`, which must be deleted before packaging.
+- Development agents do no web research. Citations and literature come from `docs/ADCS_Technical_Report.pdf`, `docs/DESIGN_SPEC.md` and, if it exists, `.local/notes.md`. Anything else is requested from the user.
 
 ## R2. Source-code commenting standard (mandatory for every .m file)
 1. **Function header**: the H1 line directly under `function ...` gives the name in caps and a one-line purpose. It is followed by `Inputs:` and `Outputs:` blocks. Each argument lists its type/size, what it is, and its physical units in brackets (use `[-]` for unitless). Example:
