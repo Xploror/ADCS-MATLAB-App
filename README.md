@@ -1,4 +1,4 @@
-# ADCS-MATLAB-App — LEO Chaser / ISS Rendezvous (v1.1.0)
+# ADCS Controller Comparison Tool — LEO Chaser / ISS Rendezvous (v1.1.0)
 
 An interactive MATLAB/Simulink environment for testing and comparing three 3-axis attitude controllers on a chaser spacecraft in a 400 km LEO orbit approaching the ISS:
 
@@ -43,14 +43,14 @@ M = arrayfun(@(r) computeMetrics(r, cfg), results);
 
 ## Folder layout
 ```
-README.md, CLAUDE.md, notes.md, PROJECT_RULES.md, startup_ADCS.m
+README.md, CLAUDE.md, PROJECT_RULES.md, startup_ADCS.m   (optional, local-level, git-excluded: .local/notes.md; see CLAUDE.md section 7)
 app/        ADCS_ComparisonApp.m (App Designer-structured GUI), launchADCSApp.m, README_app.md
 models/     build_ADCS_model.m (generates .slx/.sldd), pushParamsToDictionary.m, README_models.md
 src/        utils, reference, dynamics, disturbances, controllers, sim, analysis, config_io
 config/     initDefaults.m, gainMetadata.m, listScenarios.m, gains/, scenarios/, saved/
 tests/      run_all_tests.m, test_*.m, run_all_scenarios_smoketest.m, check_model_wiring_repair.m (opt-in)
 examples/   run_example_comparison.m
-docs/       DESIGN_SPEC.md (interface contract), technical_report.pdf
+docs/       DESIGN_SPEC.md (interface contract), technical_report.pdf, ADCS_Scenario_Reference_v1.1.0.pdf
 ```
 
 ## Verification status (read this)
@@ -59,11 +59,12 @@ docs/       DESIGN_SPEC.md (interface contract), technical_report.pdf
   - `run_all_tests` gives **9/9 PASS**, including `test_simulink_vs_reference` (Simulink matches the reference engine to about 1e-11°);
   - all 7 scenarios × 3 controllers give identical verdicts on both engines: 20/21 pass, and the single fail (PD on the persistent-excitation scan) is a genuine limitation of PD.
 - The numerical library and the reference engine are also verified in GNU Octave 8.4.
-- **The GUI has not yet been exercised in MATLAB** (notes.md I9). Please report any GUI issue.
-- `tests/check_model_wiring_repair.m` is opt-in. It rebuilds the model with a deliberately injected wiring fault to exercise the builder's self-repair (notes.md I12).
+- **The GUI has not yet been exercised in MATLAB**. Please report any GUI issue.
+- `tests/check_model_wiring_repair.m` is opt-in. It rebuilds the model with a deliberately injected wiring fault to exercise the builder's self-repair.
 
 ## Documentation
-- `CLAUDE.md`: orientation for developers and agents, covering the summary, terminology, and inter- and intra-module dependencies.
+- `CLAUDE.md`: orientation for developers and agents, covering the summary, terminology, inter- and intra-module dependencies, and the CODE-SCAN file check.
 - `docs/technical_report.pdf`: models, control-law derivations, architecture, verification results and discussion.
-- `notes.md`: all caveats (including the critic's), deviations from the approved plan, research findings, future directions and the verified reference list.
+- `docs/ADCS_Scenario_Reference_v1.1.0.pdf`: the seven App scenarios. It covers frames and initial-error geometry, all error variables and control-law equations, mission depictions, per-scenario performance analysis, and a state-space section (§11) that derives the adaptation law, the Lyapunov stability conditions and the persistent-excitation criterion.
+- `.local/notes.md` (local-level, optional, git-excluded): caveats (including the critic's), deviations, research findings, future directions and the verified reference list. It is not shipped with the project. If it is missing, `CLAUDE.md` section 7 (CODE-SCAN) creates it in your own copy, under your approval.
 - `docs/DESIGN_SPEC.md`: conventions, equations, struct fields and signatures.

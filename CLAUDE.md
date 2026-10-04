@@ -1,9 +1,10 @@
-# CLAUDE.md — ADCS-MATLAB-App (v1.1.0)
+# CLAUDE.md — ADCS Controller Comparison Tool (v1.1.0)
 
 Orientation file for any agent or developer working on this project. Read it first, then:
-- `notes.md` is the **research knowledge base**: caveats, deviations, parameter provenance, findings and references.
+- `notes.md` is the **research knowledge base** (local-level, stored at `.local/notes.md` in your own copy and git-excluded; it may be absent; see section 7, CODE-SCAN): caveats, deviations, parameter provenance, findings and references.
 - `docs/DESIGN_SPEC.md` is the **interface contract**: equations, struct fields, signatures and signal names.
 - `PROJECT_RULES.md` holds the **binding rules**: access scope, commenting standard, CLAUDE.md duty and environment escalation.
+- Section 7 (CODE-SCAN) cross-checks that all project files exist and creates a `.local/notes.md` under your approval if it is missing.
 
 ---
 
@@ -26,7 +27,7 @@ Orientation file for any agent or developer working on this project. Read it fir
   - `run_all_tests` gives 9/9 PASS, including `test_simulink_vs_reference`, which agrees to about 1e-11°;
   - all 7 scenarios × 3 controllers give identical verdicts on both engines (20/21 pass; the one fail is a genuine PD limitation).
 - The reference engine is also verified in GNU Octave 8.4.
-- **The GUI has not been executed yet** (notes.md I9); it was excluded from the v1.1.0 validation.
+- **The GUI has not been executed yet**; it was excluded from the v1.1.0 validation.
 
 **Run and test (MATLAB).**
 ```matlab
@@ -191,23 +192,70 @@ Units are SI internally. Degrees appear only in cfg fields suffixed `_deg` or `_
 
 ## 5. Invariants a change must preserve
 
-1. `docs/DESIGN_SPEC.md` is the contract. Change it first, then the code, then log the change in notes.md "Deviations".
+1. `docs/DESIGN_SPEC.md` is the contract. Change it first, then the code, then log the change in the `.local/notes.md` "Deviations" section if that file exists, otherwise in the change description.
 2. Result fields and Simulink logged-signal names must stay identical. They are checked in `extractSimulinkResults` and `simulateADCS_ref`.
 3. Controllers never read `SC.J_true`.
 4. Every source file follows the commenting standard in PROJECT_RULES R2. No double-quoted strings in `.m` files.
 5. Gates: `run_all_tests` all PASS, the smoke test has no non-finite or norm failures, and the Simulink cross-check passes whenever MATLAB is available. The model build must report all wires verified, with no open ports.
-6. Update this file and `notes.md` together whenever the structure, dependencies or results change.
+6. Update this file, and the `.local/notes.md` if it exists, together whenever the structure, dependencies or results change.
 7. MATLAB is driven through the MCP connector's single window only (PROJECT_RULES R8/R9). Before every MATLAB call, check `_tmp/status.txt` and wait for as long as it reads BUSY.
 
 ---
 
 ## 6. Knowledge base
 
-**`notes.md`** is the single research knowledge base for this project version. It holds:
-- every caveat (critic, literature, planning, implementation), with its status;
+**`notes.md`** is the research knowledge base. It is **local-level**: it lives only at `.local/notes.md` in your own copy of the project, is git-excluded, is not shipped with the project, and no code, build or test depends on it. If it is missing, it is created by the CODE-SCAN procedure (section 7), under your approval. When it exists, it holds:
+- the caveats (critic, literature, planning, implementation), with their status;
 - the deviations from the approved plan;
 - parameter provenance: where each default came from, whether literature, a wider search, or test-tuned;
-- the key findings, such as adaptation versus excitation and the anti-windup result;
-- the verification record;
+- the key findings and the verification record;
 - future directions;
 - the verified reference list.
+
+`docs/ADCS_Technical_Report.pdf` presents the models, derivations and results.
+
+---
+
+## 7. CODE-SCAN
+
+Run this procedure when the user asks for a project scan, when you first open a new copy of the project, or before a change that adds, moves or deletes files. Steps 1 to 3 are read-only.
+
+**Step 1: Run-through and file cross-check.** List the project tree and compare it with the manifest below. Report every missing and every unexpected file. Create or repair nothing in this step.
+
+| Folder | Expected files (v1.1.0) |
+|---|---|
+| root | `README.md`, `CLAUDE.md`, `PROJECT_RULES.md`, `startup_ADCS.m`, `.gitignore` |
+| `docs/` | `DESIGN_SPEC.md`, `ADCS_Technical_Report.pdf` |
+| `app/` | `ADCS_ComparisonApp.m`, `launchADCSApp.m`, `README_app.md` |
+| `models/` | `build_ADCS_model.m`, `pushParamsToDictionary.m`, `README_models.md` (the `.slx` and `.sldd` are generated, so they are not expected) |
+| `config/` | `initDefaults.m`, `gainMetadata.m`, `listScenarios.m`, `gains/` (3 files), `scenarios/` (7 files), `saved/` |
+| `src/` | `utils` (13), `reference` (4), `controllers` (12), `dynamics` (4), `disturbances` (5), `sim` (8), `analysis` (5), `config_io` (2); names as in `docs/DESIGN_SPEC.md` section 5 |
+| `tests/` | `run_all_tests.m`, `run_all_scenarios_smoketest.m`, `check_model_wiring_repair.m`, and 9 `test_*.m` files |
+| `examples/` | `run_example_comparison.m` |
+| `.local/` | optional: `notes.md` only (local-level, git-excluded, never part of the shipped project; this folder is never reported as unexpected) |
+
+**Step 2: Report.** Give the user a short list of what is present, missing and unexpected. Stop here if nothing else is needed.
+
+**Step 3: notes.md check.** The notes file is always `.local/notes.md`, relative to the project root. Look only there.
+- If it exists, leave it untouched. Only report it if its header version differs from the version in the title of this file.
+- A `notes.md` anywhere else (for example at the project root) is not the notes file. Report it as a stray file; never read it as the notes file, move it or delete it.
+- If `.local/notes.md` does not exist, continue with step 4.
+
+**Step 4: Ask for human approval.** Do no work on `.local/notes.md` until the user says yes. Ask with this warning: "`.local/notes.md` does not exist in this copy. Creating it requires reading the whole codebase and test suite, and may take significant time and tokens depending on the size of the project. Create it now?" If the project is a git repository, tell the user in the same message that `.local/` will be added to the project's `.gitignore` (the default), and offer `.git/info/exclude` (private to this clone) as the alternative. If the answer is no, or there is no answer, stop.
+
+**Step 5: Skill check (before any generation).** Look for the `divine-knowledge` skill among the skills available in the session. If it cannot be found, **stop immediately**:
+- do not create `.local/`, and do not write a partial, draft or substitute `notes.md`;
+- do not fall back to another skill;
+- tell the user: "Please upload the divine-knowledge skill first, then ask me to retry."
+
+**Step 6: Prepare the folder and the git exclusion.** With approval given and the skill found:
+- create `.local/` at the project root if it is missing;
+- if the project is a git repository, add `.local/` to `.gitignore` (create the file if it is missing, append one line, and leave every other line unchanged), or to `.git/info/exclude` if the user chose that in step 4. Then confirm with `git check-ignore -q .local/notes.md`. If the check fails, stop and tell the user;
+- if the project is not a git repository, skip the exclusion and say so.
+
+**Step 7: Generate.** Use `divine-knowledge` to write a fresh `.local/notes.md`. It must capture:
+- **the codebase:** the modules, their inter- and intra-dependencies (sections 3 and 4) and the invariants in section 5;
+- **the test suite:** what each test guards, how to run it, the acceptance gates, and which tests were not run during this scan (running MATLAB requires the user's consent and PROJECT_RULES R8 and R9);
+- **possible caveats:** known limitations, unverified items, assumptions, and the provenance of default parameter values (PROJECT_RULES R6), each with a status, and sources marked verified or unverified.
+
+**Scope rules.** The file is local-level: exactly one `.local/notes.md`, never copied, never committed or packaged unless the user says so. It is built only from what the scan read in this copy and from sources that pass the skill's quality checks. Every other project file stays unchanged during CODE-SCAN, except the one-line git exclusion approved in step 4.

@@ -1,6 +1,6 @@
 # DESIGN_SPEC.md — Interface Contract (v1.0.0, rev. 2 after first verification)
 
-This is the single source of truth for function names, signatures, struct fields, conventions and signal names. Every file must conform to it. If an implementation needs a change, the change is made here first and recorded in `notes.md` under "Deviations".
+This is the single source of truth for function names, signatures, struct fields, conventions and signal names. Every file must conform to it. If an implementation needs a change, the change is made here first and recorded in the change description and, if it exists, in the `.local/notes.md` under "Deviations".
 
 Target platforms: MATLAB R2021a+ with Simulink (primary). The `src/` and `config/` layers also run on GNU Octave 8 through the reference engine.
 
@@ -60,7 +60,7 @@ Here `Lambda = diag(lambda_diag)`, `K = diag(K_diag)`, and `sat(x) = min(max(x,�
 | 3 | PD benchmark (Wie & Barba) | `τ_c = −Kp ⊙ q_ev − Kd ⊙ ω_e` | Kp, Kd are diagonal vectors |
 
 Common post-processing in `controllerSelect`:
-`τ_cmd = τ_c + SC.gyro_comp * cross(ω, h_w)`. **Adaptation anti-windup (v1.0.0, see notes.md D9):** for controller 2 with `AG.freeze_on_sat = 1`, θ̂̇ = 0 whenever any |τ_cmd,i| > SC.tau_max or any |h_w,i| ≥ SC.h_max. After that, each axis is clamped to ±SC.tau_max. θ̂̇ is zeros(6,1) unless the controller is 2. s is zeros(3,1) for controller 3.
+`τ_cmd = τ_c + SC.gyro_comp * cross(ω, h_w)`. **Adaptation anti-windup (v1.0.0):** for controller 2 with `AG.freeze_on_sat = 1`, θ̂̇ = 0 whenever any |τ_cmd,i| > SC.tau_max or any |h_w,i| ≥ SC.h_max. After that, each axis is clamped to ±SC.tau_max. θ̂̇ is zeros(6,1) unless the controller is 2. s is zeros(3,1) for controller 3.
 
 `paramProjection`: elementwise, the output is 0 where (θ̂_i ≥ θmax_i and raw_i > 0) or (θ̂_i ≤ θmin_i and raw_i < 0). Otherwise it equals raw_i.
 
@@ -108,7 +108,7 @@ Otherwise `q_m = q`, `w_m = w` and `b_dot = 0`. Here `n_*` are unit-variance nor
   - `ω_r`: with `Ċ ≈ (C(t+h) − C(t−h))/(2h)` and `W = −Ċ C(t)ᵀ`, take `ω_r = [W(3,2) − W(2,3); W(1,3) − W(3,1); W(2,1) − W(1,2)]/2` (antisymmetric part).
   - `ω̇_r ≈ (ω_r(t+h) − ω_r(t−h))/(2h)`, with `h = SC.ref_fd_h`.
   - `q_r = dcmToQ(C_RN)` (Shepperd's method, q0 ≥ 0).
-- **mode 3 (attitude scan, added in rev. 2, see notes.md D10)**: `C_RN = qToDCM(qFromRotVec(φ(t))) · C_RN,mode1`, with `φ_i = SC.scan_amp_i · sin(SC.scan_freq_i · t)`. Incommensurate frequencies give a persistently exciting reference for the inertia estimator. ω_r and ω̇_r use the same finite-difference scheme.
+- **mode 3 (attitude scan, added in rev. 2)**: `C_RN = qToDCM(qFromRotVec(φ(t))) · C_RN,mode1`, with `φ_i = SC.scan_amp_i · sin(SC.scan_freq_i · t)`. Incommensurate frequencies give a persistently exciting reference for the inertia estimator. ω_r and ω̇_r use the same finite-difference scheme.
 
 ---------------------------------------------------------------------
 ## 4. Configuration structs
