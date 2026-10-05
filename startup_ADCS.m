@@ -19,5 +19,5 @@ fprintf('  cfg = scn_nominal();  results = runSimulation(cfg, [1 2 3], ''auto'')
 fprintf('  run_example_comparison          %% scripted comparison with plots\n');
 fprintf('  run_all_tests                   %% unit tests (Simulink cross-check if available)\n');
 fprintf('  run_all_scenarios_smoketest     %% all scenarios x all controllers\n');
-fprintf('  ADCS_ComparisonApp              %% GUI (MATLAB only)\n');
+fprintf('  ADCS_MATLAB_App                 %% GUI (MATLAB only)\n');
 clear adcs_root adcs_extra adcs_k adcs_dir

@@ -1,4 +1,4 @@
-classdef ADCS_ComparisonApp < matlab.apps.AppBase
+classdef ADCS_MATLAB_App < matlab.apps.AppBase
 %   GUI to configure, run and compare the three ADCS attitude controllers 
 %   in an ISS rendezvous setup.
 %
@@ -11,7 +11,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
 %                3 PD Benchmark
 %
 %   Usage:
-%       app = ADCS_ComparisonApp();   % or: app = launchADCSApp();
+%       app = ADCS_MATLAB_App();      % or: app = launchADCSApp();
 %       delete(app);                  % closes the window
 %
 %   The widget <-> cfg mapping lives ONLY in readWidgetsToCfg (widgets ->
@@ -152,7 +152,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Initialise the config from initDefaults and populate data-driven widgets.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Updates app.Cfg and all widgets are initialized in place
 
             %% ===== Default configuration =====
@@ -201,7 +201,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Load the selected scenario preset (cfg = feval(fname)) into all widgets.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - app.Cfg replaced, widgets refreshed
@@ -231,7 +231,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Save the current widget state as a cfg .mat file via saveConfig.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - file written by saveConfig(file, cfg)
@@ -270,7 +270,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Load a cfg .mat file via loadConfig and refresh all widgets.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - app.Cfg replaced, widgets refreshed
@@ -303,7 +303,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Live-update the angle field while the slider is dragged.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangingData, event.Value = angle [deg]
         % Outputs:
         %   (none)
@@ -315,7 +315,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Copy the final slider value into the angle field.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
@@ -327,7 +327,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Copy the typed angle into the slider.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
@@ -339,7 +339,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Live-update the uncertainty field while the slider is dragged.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangingData, event.Value = pct   [%]
         % Outputs:
         %   (none)
@@ -351,7 +351,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Copy the final slider value into the field and refresh J_true.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
@@ -364,7 +364,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Copy the typed uncertainty into the slider and refresh J_true.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
@@ -377,7 +377,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Refresh J_true after the uncertainty mode or seed changed.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
@@ -389,7 +389,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Keep J_nom symmetric by mirroring the edited element, then refresh J_true.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.CellEditData: Indices [1x2] (row, col),
         %           NewData [1] new value, PreviousData [1] old value        [kg*m^2]
         % Outputs:
@@ -422,7 +422,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Enable or disable the noise-std fields with the noise checkbox.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
@@ -439,7 +439,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Validate an edited gain element and keep the ablation mirror in sync.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.CellEditData; event.Source.UserData has
         %           ctrl (char), field (char), n (double); NewData [1]     [gain units]
         % Outputs:
@@ -468,7 +468,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Replace one controller's gains by its *_default(J_nom).
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ButtonPushedData; event.Source.UserData
         %           = 'robust' | 'adaptive' | 'baseline'                   
         % Outputs:
@@ -486,7 +486,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
                     case 'baseline'
                         g = baseline_default(J);
                     otherwise
-                        error('ADCS_ComparisonApp:ctrl', 'Unknown controller key %s.', ctrl);
+                        error('ADCS_MATLAB_App:ctrl', 'Unknown controller key %s.', ctrl);
                 end
 
                 %% ===== Store, write widgets and report =====
@@ -508,7 +508,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Fill Kp_diag/Kd_diag from pdGainsFromBandwidth(J_nom, wn, zeta).
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - baseline Kp_diag [N*m] and Kd_diag [N*m*s] tables updated
@@ -539,7 +539,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Apply or release the robust -> adaptive gain mirror.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
@@ -561,7 +561,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Enable the controller dropdown only for single-controller runs.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.SelectionChangedData, unused           
         % Outputs:
         %   (none)
@@ -573,7 +573,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Read widgets, run the simulation(s), compute metrics and show results.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - app.Results, app.Metrics, app.PassFlags, app.RunCfg set
@@ -669,7 +669,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %RESULTSMODEDROPDOWNVALUECHANGED Switch between overlay and single-run display.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
@@ -683,7 +683,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %RESULTSCTRLDROPDOWNVALUECHANGED Re-plot after another stored result was selected.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
@@ -695,7 +695,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %EXPORTFIGUREBUTTONPUSHED Export the app window (exportapp), falling back to per-axes exportgraphics.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - image file(s) written
@@ -741,7 +741,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %EXPORTCSVBUTTONPUSHED Export the metrics table to CSV via exportMetricsCSV.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - CSV file written
@@ -781,7 +781,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %READWIDGETSTOCFG Copy every widget value into app.Cfg (the ONLY widget -> cfg mapping).
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none) - app.Cfg updated in place; fields not exposed in the GUI
         %            (e.g. rho_kgm3, noise_seed) are kept unchanged
@@ -870,7 +870,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %WRITECFGTOWIDGETS Copy app.Cfg into every widget (mirror of readWidgetsToCfg).
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none) - widgets updated; out-of-range values are clamped to the
         %            widget limits and reported in the status bar
@@ -979,7 +979,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %VALIDATECFG Check the widget-derived app.Cfg for values that would break a run.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance (call readWidgetsToCfg first) 
+        %   app - ADCS_MATLAB_App, this app instance (call readWidgetsToCfg first) 
         % Outputs:
         %   ok  - logical [1], true if every check passed                    
         %   msg - char, newline-separated list of problems ('' if ok)        
@@ -1073,7 +1073,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %READJNOMFROMTABLE Return the symmetrised J_nom from the editable table.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   J   - double [3x3], symmetric nominal inertia                    [kg*m^2]
 
@@ -1089,7 +1089,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %REFRESHJTRUE Read widgets, call buildSimParams and show the derived J_true.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none) - JtrueTable and JtrueNoteLabel updated; errors go to the status bar
 
@@ -1124,7 +1124,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %WRITEGAINWIDGETS Write one controller's gain struct into its generated uitables.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       
+        %   app  - ADCS_MATLAB_App, this app instance                       
         %   ctrl - char, 'robust' | 'adaptive' | 'baseline'                  
         %   g    - struct, user gain struct (DESIGN_SPEC 4.1)                [gain units]
         % Outputs:
@@ -1159,7 +1159,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SYNCABLATIONWIDGETS Mirror robust Lambda, K, eta, phi into the adaptive tables when locked.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none) - adaptive tables updated and made read-only (or editable again)
 
@@ -1185,7 +1185,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %REFRESHRESULTS Redraw the six result axes and the metrics table.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none)
 
@@ -1255,7 +1255,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %RESETAXES Clear result axes i (legend, children, limits) and restore its title.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         %   i   - double [1], index into ResultAxes / PlotQuantities           
         % Outputs:
         %   (none)
@@ -1273,7 +1273,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %UPDATERESULTSSELECTOR Fill the single-run selector with the names of the stored results.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none)
 
@@ -1295,7 +1295,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %FORMATRESULTLINE Build one log line summarising a result and its metrics.
         %
         % Inputs:
-        %   app     - ADCS_ComparisonApp, this app instance                    
+        %   app     - ADCS_MATLAB_App, this app instance                    
         %   res     - struct, one result (DESIGN_SPEC 6)                     [mixed]
         %   M       - struct, metrics of res (DESIGN_SPEC 5.1)               [mixed]
         %   pass    - logical [1], pass flag                                 
@@ -1336,7 +1336,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %GETMETRIC Return a scalar metric or NaN if the field is missing.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       
+        %   app  - ADCS_MATLAB_App, this app instance                       
         %   M    - struct, metrics struct                                    [mixed]
         %   name - char, field name                                          
         % Outputs:
@@ -1352,7 +1352,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SETNUMERICFIELD Assign a value to a numeric edit field, clamping it into the field limits.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       
+        %   app  - ADCS_MATLAB_App, this app instance                       
         %   h    - matlab.ui.control.NumericEditField, target field          
         %   v    - double [1], value to show                                 [field units]
         %   name - char, cfg field name used in warnings                     
@@ -1389,7 +1389,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SETDROPDOWNVALUE Select a dropdown entry by its ItemsData value if it exists.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       
+        %   app  - ADCS_MATLAB_App, this app instance                       
         %   dd   - matlab.ui.control.DropDown, target dropdown               
         %   v    - double [1] or char, ItemsData value to select             
         %   name - char, cfg field name used in warnings                     
@@ -1414,7 +1414,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SETDROPDOWNITEMS Replace the Items and ItemsData of a dropdown safely.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   dd    - matlab.ui.control.DropDown, target dropdown              
         %   items - cell [1xK] of char, display names                        
         %   data  - 1xK numeric array or cell of char, ItemsData             
@@ -1430,7 +1430,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %UPDATENOISEENABLE Enable the noise-std fields only when sensor noise is enabled.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none)
 
@@ -1443,7 +1443,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %NOTESUFFIX Status-bar suffix listing the notes of the last writeCfgToWidgets.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   s   - char, ' (notes: ...)' or '' when there were none           
 
@@ -1458,7 +1458,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %ONOFF Convert a logical to the char 'on' / 'off'.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         %   tf  - logical [1]                                                  
         % Outputs:
         %   s   - char, 'on' if tf is true, else 'off'                       
@@ -1474,7 +1474,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SETSTATUS Show a message in the status bar.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         %   msg - char, message text                                         
         % Outputs:
         %   (none)
@@ -1488,7 +1488,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %APPENDLOG Append a time-stamped line to the run log.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         %   msg - char, message text                                         
         % Outputs:
         %   (none)
@@ -1517,7 +1517,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %GAINCOLUMNNAMES Column headers for a 1xn gain table.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   app   - ADCS_MATLAB_App, this app instance                      
         %   n     - double [1], number of elements                           
         % Outputs:
         %   names - cell [1xn] of char, column headers                       
@@ -1543,7 +1543,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATECOMPONENTS Create the figure and every UI component (App Designer style).
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none) - components stored in the public properties
 
@@ -1587,7 +1587,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATESCENARIOTAB Build tab 1: preset, attitude, reference, inertia, disturbance, actuator, simulation panels.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none)
 
@@ -1796,7 +1796,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATEGAINSTAB Build tab 2: nested sub-tabs generated from gainMetadata().
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none) - app.GainWidgets filled
 
@@ -1836,7 +1836,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATEGAINSUBTAB Generate one gain sub-tab: a labelled 1xn uitable per metadata row.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       
+        %   app  - ADCS_MATLAB_App, this app instance                       
         %   tab  - matlab.ui.container.Tab, parent sub-tab                   
         %   ctrl - char, 'robust' | 'adaptive' | 'baseline'                  
         %   rows - cell [Nx5], {field, label, units, n_elements, description} [mixed]
@@ -1932,7 +1932,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATERUNTAB Build tab 3: run mode, controller, engine, Run button, Simulink status and log.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none)
 
@@ -2002,7 +2002,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATERESULTSTAB Build tab 4: display controls, 2x3 result axes, metrics table and exports.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none)
 
@@ -2072,7 +2072,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %NEWPANEL Create a titled panel in a grid cell with an inner grid layout.
         %
         % Inputs:
-        %   app       - ADCS_ComparisonApp, this app instance                  
+        %   app       - ADCS_MATLAB_App, this app instance                  
         %   parent    - matlab.ui.container.GridLayout, parent grid          
         %   titleText - char, panel title                                    
         %   row, col  - double [1] or [1x2], Layout.Row / Layout.Column      
@@ -2096,7 +2096,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %ADDLABEL Create a label in a grid cell.
         %
         % Inputs:
-        %   app    - ADCS_ComparisonApp, this app instance                     
+        %   app    - ADCS_MATLAB_App, this app instance                     
         %   parent - matlab.ui.container.GridLayout, parent grid             
         %   row    - double [1] or [1x2], Layout.Row                         
         %   col    - double [1] or [1x2], Layout.Column                      
@@ -2117,7 +2117,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %ADDNUMERICROW Create a 'label | numeric edit field' row in a 2-column grid.
         %
         % Inputs:
-        %   app            - ADCS_ComparisonApp, this app instance             
+        %   app            - ADCS_MATLAB_App, this app instance             
         %   parent         - matlab.ui.container.GridLayout, parent grid     
         %   row            - double [1], grid row                            
         %   labelText      - char, label including units                     
@@ -2152,7 +2152,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %ADDTRIPLETROW Create a 'label | three numeric fields' row in a 2-column grid.
         %
         % Inputs:
-        %   app       - ADCS_ComparisonApp, this app instance                  
+        %   app       - ADCS_MATLAB_App, this app instance                  
         %   parent    - matlab.ui.container.GridLayout, parent grid          
         %   row       - double [1], grid row                                 
         %   labelText - char, label including units                          
@@ -2202,7 +2202,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
                 end
             end
             if exist('initDefaults', 'file') ~= 2
-                error('ADCS_ComparisonApp:path', ...
+                error('ADCS_MATLAB_App:path', ...
                     'ADCS library not found on the path. Run startup_ADCS.m in %s first.', root);
             end
         end
@@ -2212,17 +2212,17 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
     %% ===== App creation and deletion =====
     methods (Access = public)
 
-        function app = ADCS_ComparisonApp()
-        %ADCS_COMPARISONAPP Construct the app: set paths, create components, register, start up.
+        function app = ADCS_MATLAB_App()
+        %ADCS_MATLAB_APP Construct the app: set paths, create components, register, start up.
         %
         % Inputs:
         %   (none)
         % Outputs:
-        %   app - ADCS_ComparisonApp, the running app instance (cleared if nargout == 0) 
+        %   app - ADCS_MATLAB_App, the running app instance (cleared if nargout == 0) 
 
             %% ===== Paths =====
             app.ProjectRoot = fileparts(fileparts(mfilename('fullpath')));
-            ADCS_ComparisonApp.ensurePaths(app.ProjectRoot);
+            ADCS_MATLAB_App.ensurePaths(app.ProjectRoot);
 
             %% ===== Components, registration, startup =====
             createComponents(app);
@@ -2238,7 +2238,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %DELETE Delete the app and its figure.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        
+        %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none)
 

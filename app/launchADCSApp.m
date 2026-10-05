@@ -4,7 +4,7 @@ function app = launchADCSApp()
 % Inputs:
 %   (none)
 % Outputs:
-%   app - ADCS_ComparisonApp, handle of the running app (delete(app) closes it) [-]
+%   app - ADCS_MATLAB_App, handle of the running app (delete(app) closes it) [-]
 %
 % Example:
 %   app = launchADCSApp();
@@ -16,5 +16,5 @@ if exist('initDefaults', 'file') ~= 2
 end
 
 %% ===== Launch =====
-app = ADCS_ComparisonApp();
+app = ADCS_MATLAB_App();
 end

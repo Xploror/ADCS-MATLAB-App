@@ -1,6 +1,6 @@
 # ADCS Comparison App (GUI)
 
-`app/ADCS_ComparisonApp.m` is the graphical front end of the ADCS-MATLAB-App. With it you configure a LEO-chaser / ISS rendezvous scenario (3-axis rotational dynamics only) and run one controller or all three:
+`app/ADCS_MATLAB_App.m` is the graphical front end of the ADCS-MATLAB-App. With it you configure a LEO-chaser / ISS rendezvous scenario (3-axis rotational dynamics only) and run one controller or all three:
 
 1. Robust SMC
 2. Adaptive SMC (online inertia estimation)
@@ -16,7 +16,7 @@ Requires MATLAB R2021a or newer. Simulink is optional: without it the MATLAB ref
 
 ```matlab
 >> run('<project root>/startup_ADCS.m')   % once per session (adds src/, config/, app/, ...)
->> app = ADCS_ComparisonApp();            % or: app = launchADCSApp();
+>> app = ADCS_MATLAB_App();               % or: app = launchADCSApp();
 >> delete(app)                             % closes the window (closing the window also works)
 ```
 
@@ -129,7 +129,7 @@ When `writeCfgToWidgets` meets a value outside a widget's limits (for example `J
 
 The file follows the structure of App Designer's generated code:
 
-- `classdef ADCS_ComparisonApp < matlab.apps.AppBase`;
+- `classdef ADCS_MATLAB_App < matlab.apps.AppBase`;
 - public, typed component properties;
 - private state properties (`Cfg`, `Results`, `Metrics`, `PassFlags`, `GainWidgets`);
 - a private `createComponents(app)`;

@@ -32,7 +32,7 @@ Orientation file for any agent or developer working on this project. Read it fir
 **Run and test (MATLAB).**
 ```matlab
 startup_ADCS; build_ADCS_model(true); run_all_tests      % gate: test_simulink_vs_reference must PASS
-ADCS_ComparisonApp                                        % GUI
+ADCS_MATLAB_App                                           % GUI
 results = runSimulation(scn_nominal(), [1 2 3], 'auto');  % scripted
 run_all_scenarios_smoketest                               % 7 scenarios x 3 controllers
 check_model_wiring_repair                                 % opt-in: exercises the builder's wire repair (rebuilds twice)
@@ -226,7 +226,7 @@ Run this procedure when the user asks for a project scan, when you first open a 
 |---|---|
 | root | `README.md`, `CLAUDE.md`, `PROJECT_RULES.md`, `startup_ADCS.m`, `.gitignore` |
 | `docs/` | `DESIGN_SPEC.md`, `ADCS_Technical_Report.pdf` |
-| `app/` | `ADCS_ComparisonApp.m`, `launchADCSApp.m`, `README_app.md` |
+| `app/` | `ADCS_MATLAB_App.m`, `launchADCSApp.m`, `README_app.md` |
 | `models/` | `build_ADCS_model.m`, `pushParamsToDictionary.m`, `README_models.md` (the `.slx` and `.sldd` are generated, so they are not expected) |
 | `config/` | `initDefaults.m`, `gainMetadata.m`, `listScenarios.m`, `gains/` (3 files), `scenarios/` (7 files), `saved/` |
 | `src/` | `utils` (13), `reference` (4), `controllers` (12), `dynamics` (4), `disturbances` (5), `sim` (8), `analysis` (5), `config_io` (2); names as in `docs/DESIGN_SPEC.md` section 5 |

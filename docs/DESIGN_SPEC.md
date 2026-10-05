@@ -199,7 +199,7 @@ Simulink workspace or data-dictionary variable names: **`SC`, `RobustGains` (=RG
 
 `models/`: `mdl = build_ADCS_model(overwrite)` creates `models/ADCS_ComparisonHarness.slx` and `models/ADCS_Params.sldd`; `pushParamsToDictionary(cfg, ctrl_id)`
 
-`app/`: `ADCS_ComparisonApp.m` (`classdef ... < matlab.apps.AppBase`)
+`app/`: `ADCS_MATLAB_App.m` (`classdef ... < matlab.apps.AppBase`)
 
 Root: `startup_ADCS.m` (adds paths). `examples/run_example_comparison.m`
 

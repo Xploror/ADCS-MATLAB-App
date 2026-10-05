@@ -21,7 +21,7 @@ cd ADCS-MATLAB-App
 startup_ADCS                 % add paths
 build_ADCS_model(true)       % generate models/ADCS_ComparisonHarness.slx + ADCS_Params.sldd (first time)
 run_all_tests                % unit tests + Simulink-vs-reference cross-check
-ADCS_ComparisonApp           % launch the GUI
+ADCS_MATLAB_App              % launch the GUI
 ```
 Scripted use:
 ```matlab
@@ -44,7 +44,7 @@ M = arrayfun(@(r) computeMetrics(r, cfg), results);
 ## Folder layout
 ```
 README.md, CLAUDE.md, PROJECT_RULES.md, startup_ADCS.m   (optional, local-level, git-excluded: .local/notes.md; see CLAUDE.md section 7)
-app/        ADCS_ComparisonApp.m (App Designer-structured GUI), launchADCSApp.m, README_app.md
+app/        ADCS_MATLAB_App.m (App Designer-structured GUI), launchADCSApp.m, README_app.md
 models/     build_ADCS_model.m (generates .slx/.sldd), pushParamsToDictionary.m, README_models.md
 src/        utils, reference, dynamics, disturbances, controllers, sim, analysis, config_io
 config/     initDefaults.m, gainMetadata.m, listScenarios.m, gains/, scenarios/, saved/
