@@ -1,5 +1,5 @@
 function tf = isOctave()
-%ISOCTAVE True when running under GNU Octave, false under MATLAB.
+% True when running under GNU Octave, false under MATLAB.
 %
 % Inputs:
 %   (none)

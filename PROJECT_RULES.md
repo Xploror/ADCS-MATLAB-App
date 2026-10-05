@@ -1,11 +1,11 @@
-# PROJECT_RULES.md — ADCS-MATLAB-App
+# PROJECT_RULES.md — ADCS Controller Comparison Tool
 
 These rules are binding for every agent (human or AI) that develops this project.
 
 ## R1. Access scope
-- Development agents may only read, write, and delete files inside this folder, `ADCS_ComparisonTool/`. Nothing outside it may be touched.
-- Temporary files go in `ADCS_ComparisonTool/_tmp/`, which must be deleted before packaging.
-- Development agents do no web research. Citations and literature come from `notes.md`, which the research and critic agents maintain.
+- Development agents may only read, write, and delete files inside this folder, `ADCS-MATLAB-App/`. Nothing outside it may be touched.
+- Temporary files go in `ADCS-MATLAB-App/_tmp/`, which must be deleted before packaging.
+- Development agents do no web research. Citations and literature come from `docs/ADCS_Technical_Report.pdf`, `docs/DESIGN_SPEC.md` and, if it exists, `.local/notes.md`. Anything else is requested from the user.
 
 ## R2. Source-code commenting standard (mandatory for every .m file)
 1. **Function header**: the H1 line directly under `function ...` gives the name in caps and a one-line purpose. It is followed by `Inputs:` and `Outputs:` blocks. Each argument lists its type/size, what it is, and its physical units in brackets (use `[-]` for unitless). Example:
@@ -32,10 +32,10 @@ These rules are binding for every agent (human or AI) that develops this project
 - Code in `src/` and `config/` must run in both MATLAB (R2021a+) and GNU Octave 8, so the reference engine can be tested without MATLAB. Use neither `string` class literals ("...") nor `arguments` blocks.
 
 ## R5. CLAUDE.md (mandatory, maintained by development agents)
-`CLAUDE.md` at the project root contains the project summary, terminology, inter-dependencies (between modules), intra-dependencies (within modules), invariants, and a pointer to `notes.md` as the research knowledge base. Update it whenever the structure or dependencies change, together with `notes.md`.
+`CLAUDE.md` at the project root contains the project summary, terminology, inter-dependencies (between modules), intra-dependencies (within modules), invariants, a pointer to the `.local/notes.md`, and the CODE-SCAN section (file cross-check and `notes.md` creation under human approval). Update it whenever the structure or dependencies change, together with the `.local/notes.md` if it exists.
 
 ## R6. Undetermined parameter values
-If a value cannot be taken from the reviewed literature, first search wider literature (research agents). Failing that, choose a default and validate it with test runs. Record the provenance in `notes.md` §2b.
+If a value cannot be taken from the reviewed literature, first search wider literature (research agents). Failing that, choose a default and validate it with test runs. Record the provenance in the parameter-provenance section of the `.local/notes.md` if it exists, otherwise in the comment next to the parameter and in the change description.
 
 ## R7. Environment gaps go to human-in-the-loop
 If a required environment (e.g. MATLAB/Simulink, a toolbox, hardware) is unavailable, stop and flag it to the user. Suggest how to provide it, e.g. by connecting a MATLAB MCP server, and wait for the user's response. Continue with a workaround only if the user agrees, and log it as an open caveat.
@@ -62,6 +62,8 @@ Run this sequence before **every** new MATLAB call:
 
 Every call must return well within the connector's 60 s limit. Queue anything longer on a one-shot timer inside the same session with `_tmp/runJobAsync.m`. It writes `BUSY`/`IDLE` to `_tmp/status.txt` and its output to `_tmp/job_<name>.log`. Progress is monitored from those files only.
 
-## R4. notes.md
-- There is one `notes.md` per project version, at the project root. It is updated in place, never copied.
-- It records caveats from every agent (always including the critic's), deviations from the approved plan, future directions, and a numbered References list cited inline as `[n]`.
+## R4. .local/notes.md (local-level, optional)
+- `.local/notes.md` belongs to the user's own copy of the project and is git-excluded. It is not part of the shipped project, no build, test or code path depends on it, and it is never committed or packaged unless the user says so.
+- If it is missing, it is created only by the CODE-SCAN procedure in `CLAUDE.md` section 7, under explicit human approval and with the `divine-knowledge` skill. Never create it silently, and never from a substitute skill.
+- There is at most one notes file, always `.local/notes.md`; a `notes.md` anywhere else is not the knowledge base. It is updated in place, never copied.
+- When it exists, it records caveats from every agent (always including the critic's), deviations from the approved plan, future directions, and a numbered References list cited inline as `[n]`.

@@ -1,20 +1,20 @@
 function res = extractSimulinkResults(simOut, SC, RG, AG, BG, ctrl_id)
-%EXTRACTSIMULINKRESULTS Convert a Simulink.SimulationOutput into the engine-independent result struct.
+% Convert a Simulink.SimulationOutput into the engine-independent result struct.
 %
 % Inputs:
-%   simOut  - Simulink.SimulationOutput, output of one harness run         [-]
+%   simOut  - Simulink.SimulationOutput, output of one harness run         
 %   SC      - struct, sim-level parameters used for the run                [mixed SI]
 %   RG      - struct, RobustGains used for the run                         [mixed SI]
 %   AG      - struct, AdaptiveGains used for the run                       [mixed SI]
 %   BG      - struct, BaselineGains used for the run                       [mixed SI]
-%   ctrl_id - double [1], controller id of the run (1, 2 or 3)             [-]
+%   ctrl_id - double [1], controller id of the run (1, 2 or 3)             
 % Outputs:
 %   res     - struct [1x1], fields of spec section 6 in this order:
 %             t [Nx1] s, q [Nx4], w [Nx3] rad/s, q_r [Nx4], w_r [Nx3] rad/s,
 %             q_e [Nx4], w_e [Nx3] rad/s, att_err_deg [Nx1] deg, s [Nx3] rad/s,
 %             tau_cmd [Nx3] N*m, tau_rw [Nx3] N*m, h_w [Nx3] N*m*s,
 %             theta_hat [Nx6] kg*m^2, tau_d/tau_gg/tau_aero/tau_srp/tau_mag
-%             [Nx3] N*m, qnorm [Nx1] [-], sat_flags [Nx6] [-], then metadata
+%             [Nx3] N*m, qnorm [Nx1] , sat_flags [Nx6] , then metadata
 %             ctrl_id, ctrl_name, engine ('simulink'), SC, RG, AG, BG,
 %             wallclock_s [s] (NaN if the run metadata has no timing).    [mixed]
 
@@ -89,13 +89,13 @@ end
 %% ===================================================================
 
 function ts = getLoggedTimeseries(logsout, name)
-%GETLOGGEDTIMESERIES Return the timeseries of a named element of a logsout Dataset.
+% Return the timeseries of a named element of a logsout Dataset.
 %
 % Inputs:
-%   logsout - Simulink.SimulationData.Dataset, logged signals             [-]
-%   name    - char, signal (element) name                                 [-]
+%   logsout - Simulink.SimulationData.Dataset, logged signals             
+%   name    - char, signal (element) name                                 
 % Outputs:
-%   ts      - timeseries, logged values of that signal                    [-]
+%   ts      - timeseries, logged values of that signal                    
 
 %% ===== Look up the element by name =====
 el = [];
@@ -126,13 +126,13 @@ ts = el.Values;
 end
 
 function X = toRowMajor(ts, name)
-%TOROWMAJOR Convert timeseries data ([N x n], [n x 1 x N] or [1 x n x N]) to [N x n].
+% Convert timeseries data ([N x n], [n x 1 x N] or [1 x n x N]) to [N x n].
 %
 % Inputs:
-%   ts   - timeseries, logged signal                                      [-]
-%   name - char, signal name (for error messages)                         [-]
+%   ts   - timeseries, logged signal                                      
+%   name - char, signal name (for error messages)                         
 % Outputs:
-%   X    - double [N x n], one row per time sample                        [-]
+%   X    - double [N x n], one row per time sample                        
 
 %% ===== Raw data and sample count =====
 d = double(ts.Data);

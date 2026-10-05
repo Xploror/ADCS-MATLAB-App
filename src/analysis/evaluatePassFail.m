@@ -1,14 +1,14 @@
 function [pass, reasons] = evaluatePassFail(M, passCfg)
-%EVALUATEPASSFAIL Check a metrics struct against the scenario pass criteria.
+% Check a metrics struct against the scenario pass criteria.
 %
 % Inputs:
 %   M       - struct, metrics from computeMetrics                         [mixed]
 %   passCfg - struct, cfg.pass: ss_err_max_deg [deg], settle_time_max_s [s],
-%             qnorm_tol [-]
+%             qnorm_tol 
 % Outputs:
-%   pass    - logical [1], true if every criterion is met                 [-]
+%   pass    - logical [1], true if every criterion is met                 
 %   reasons - cell [1xR] of char, one message per failed criterion
-%             (empty cell if pass)                                        [-]
+%             (empty cell if pass)                                        
 
 reasons = {};
 

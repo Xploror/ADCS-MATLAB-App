@@ -1,10 +1,10 @@
 function q = dcmToQ(C)
-%DCMTOQ Scalar-first quaternion from a direction cosine matrix (Shepperd's method).
+% Scalar-first quaternion from a direction cosine matrix (Shepperd's method).
 %
 % Inputs:
-%   C - double [3x3], proper orthogonal direction cosine matrix C_BN      [-]
+%   C - double [3x3], proper orthogonal direction cosine matrix C_BN
 % Outputs:
-%   q - double [4x1], unit quaternion of B w.r.t. N, scalar-first, q0>=0  [-]
+%   q - double [4x1], unit quaternion of B w.r.t. N, scalar-first, q0>=0
 %
 % Shepperd (1978): choose the numerically largest of {q0^2, q1^2, q2^2, q3^2}
 % to avoid dividing by a small number (robust near 180 deg rotations).
@@ -15,14 +15,7 @@ function q = dcmToQ(C)
 %% ===== Select the largest component =====
 tr = C(1,1) + C(2,2) + C(3,3);
 cand = [tr; C(1,1); C(2,2); C(3,3)];
-imax = 1;
-vmax = cand(1);
-for i = 2:4
-    if cand(i) > vmax
-        vmax = cand(i);
-        imax = i;
-    end
-end
+[~, imax] = max(cand);
 
 %% ===== Compute quaternion components =====
 q = zeros(4,1);

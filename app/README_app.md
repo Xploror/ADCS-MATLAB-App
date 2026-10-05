@@ -140,7 +140,7 @@ The file follows the structure of App Designer's generated code:
 It is kept as plain `.m` text rather than a `.mlapp` (a zipped binary container) for two reasons:
 
 1. **It can be reviewed as text.** Diffs, code review and the project's commenting standard apply to every line.
-2. **An `.mlapp` cannot be authored without MATLAB.** The file was written in an environment without MATLAB (see `notes.md`, deviation D1). A hand-built `.mlapp` could not have been verified at all.
+2. **An `.mlapp` cannot be authored without MATLAB.** The file was written in an environment without MATLAB. A hand-built `.mlapp` could not have been verified at all.
 
 Functionally the two are equivalent: the class uses only documented `uifigure`-family components.
 

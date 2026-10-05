@@ -1,20 +1,11 @@
-%STARTUP_ADCS Add the ADCS-MATLAB-App folders to the path and print usage.
-%
-% Inputs:
-%   (none; script)
-% Outputs:
-%   (none; modifies the MATLAB/Octave path)
-%
-% Run once per session from any folder:  run('<path>/startup_ADCS.m')  or
-% cd to the project root and type  startup_ADCS
+% Adds the ADCS-MATLAB-App folders to the path and print usage.
 
-%% ===== Locate the project root =====
-adcs_root = fileparts(mfilename('fullpath'));   % [-] absolute path of the project root
+adcs_root = fileparts(mfilename('fullpath'));   % absolute path of the project root
 
 %% ===== Add folders to the path =====
 addpath(genpath(fullfile(adcs_root, 'src')));
 addpath(genpath(fullfile(adcs_root, 'config')));
-adcs_extra = {'app', 'models', 'tests', 'examples'};   % [-] non-recursive folders
+adcs_extra = {'app', 'models', 'tests', 'examples'};   % non-recursive folders
 for adcs_k = 1:numel(adcs_extra)
     adcs_dir = fullfile(adcs_root, adcs_extra{adcs_k});
     if exist(adcs_dir, 'dir')

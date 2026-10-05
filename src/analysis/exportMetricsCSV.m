@@ -1,9 +1,9 @@
 function exportMetricsCSV(file, header, rows)
-%EXPORTMETRICSCSV Write a metrics table (from metricsTable) to a CSV file.
+% Write a metrics table (from metricsTable) to a CSV file.
 %
 % Inputs:
-%   file   - char, output file path                                       [-]
-%   header - cell [1xC] of char, column titles                            [-]
+%   file   - char, output file path                                       
+%   header - cell [1xC] of char, column titles                            
 %   rows   - cell [KxC], char or double entries                           [mixed]
 % Outputs:
 %   (none; writes the file, errors if it cannot be opened)
@@ -24,15 +24,15 @@ end
 
 %% ===== Local functions =====
 function line = localJoin(cells)
-%LOCALJOIN Join cell entries into one CSV line (chars quoted, numbers %.10g).
+% Join cell entries into one CSV line (chars quoted, numbers %.10g).
 %
 % Inputs:
 %   cells - cell [1xC], char or numeric scalars                           [mixed]
 % Outputs:
-%   line  - char, comma-separated line                                    [-]
+%   line  - char, comma-separated line                                    
 
 %% ===== Format each cell =====
-dq = char(34);                                          % [-] double-quote character (CSV text delimiter)
+dq = char(34);                                          %  double-quote character (CSV text delimiter)
 parts = cell(1, numel(cells));
 for c = 1:numel(cells)
     v = cells{c};

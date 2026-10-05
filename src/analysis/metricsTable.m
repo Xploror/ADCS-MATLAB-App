@@ -1,12 +1,12 @@
 function [header, rows] = metricsTable(results, metrics, passFlags)
-%METRICSTABLE Tabulate metrics of several results (for uitable, printing and CSV).
+% Tabulate metrics of several results (for uitable, printing and CSV).
 %
 % Inputs:
 %   results   - struct [1xK], result structs (uses ctrl_name, engine)    [mixed]
 %   metrics   - struct [1xK] (or cell {1xK}) of metrics from computeMetrics [mixed]
-%   passFlags - logical [1xK], pass verdicts; optional (empty -> '-')    [-]
+%   passFlags - logical [1xK], pass verdicts; optional (empty -> '-')    
 % Outputs:
-%   header    - cell [1xC] of char, column titles with units             [-]
+%   header    - cell [1xC] of char, column titles with units             
 %   rows      - cell [KxC], char (controller, engine, pass) or double
 %               (metric values, in the units of the header)              [mixed]
 
@@ -23,7 +23,7 @@ cols = { ...
   'sat_time_torque_s',   'Torque sat [s]'; ...
   'sat_time_mom_s',      'Momentum sat [s]'; ...
   'chatter_TV',          'Chatter TV [N*m/s]'; ...
-  'qnorm_max_dev',       '|qnorm-1| max [-]'; ...
+  'qnorm_max_dev',       '|qnorm-1| max '; ...
   'theta_err_final_pct', 'Theta err [%]'};
 header = [{'Controller', 'Engine'}, cols(:,2).', {'Finite', 'Pass'}];
 

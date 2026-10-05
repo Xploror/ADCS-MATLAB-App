@@ -1,17 +1,14 @@
 classdef ADCS_ComparisonApp < matlab.apps.AppBase
-%ADCS_COMPARISONAPP GUI to configure, run and compare the three ADCS attitude controllers.
+%   GUI to configure, run and compare the three ADCS attitude controllers 
+%   in an ISS rendezvous setup.
 %
-%   App Designer-structured programmatic app (matlab.apps.AppBase with
-%   registerApp). It edits the user-level configuration struct cfg
-%   (docs/DESIGN_SPEC.md section 4.1), runs
-%   runSimulation(cfg, ctrl_ids, engine), evaluates computeMetrics /
-%   evaluatePassFail and plots the results with plotResultsOnAxes. It holds
-%   no physics or metric code of its own: everything is delegated to the
-%   library functions of DESIGN_SPEC.md section 5.
+%   The App edits user-level configuration struct, runs runSimulation(),
+%   evaluates metrics and flags (computeMetrics/evaluatePassFail) and plots
+%   the results (plotResultsOnAxes)
 %
-%   Controllers: 1 Robust SMC, 2 Adaptive SMC (online inertia estimation),
-%   3 PD Benchmark. Scenario: LEO chaser rendezvousing with the ISS,
-%   3-axis rotational dynamics only.
+%   Controllers: 1 Robust SMC 
+%                2 Adaptive SMC (online inertia estimation)
+%                3 PD Benchmark
 %
 %   Usage:
 %       app = ADCS_ComparisonApp();   % or: app = launchADCSApp();
@@ -25,36 +22,36 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
     %% ===== Public component properties =====
     properties (Access = public)
         % ----- Figure-level -----
-        UIFigure                matlab.ui.Figure                 % main application window [-]
-        MainGrid                matlab.ui.container.GridLayout   % root grid: tab group + status bar [-]
-        TabGroup                matlab.ui.container.TabGroup     % top-level tab group (4 tabs) [-]
-        ScenarioTab             matlab.ui.container.Tab          % tab 1: scenario and initial conditions [-]
-        GainsTab                matlab.ui.container.Tab          % tab 2: controller gains [-]
-        RunTab                  matlab.ui.container.Tab          % tab 3: run controls and log [-]
-        ResultsTab              matlab.ui.container.Tab          % tab 4: plots and metrics [-]
-        StatusLabel             matlab.ui.control.Label          % status bar text at the bottom [-]
+        UIFigure                matlab.ui.Figure                 % main application window 
+        MainGrid                matlab.ui.container.GridLayout   % root grid: tab group + status bar 
+        TabGroup                matlab.ui.container.TabGroup     % top-level tab group (4 tabs) 
+        ScenarioTab             matlab.ui.container.Tab          % tab 1: scenario and initial conditions 
+        GainsTab                matlab.ui.container.Tab          % tab 2: controller gains 
+        RunTab                  matlab.ui.container.Tab          % tab 3: run controls and log 
+        ResultsTab              matlab.ui.container.Tab          % tab 4: plots and metrics 
+        StatusLabel             matlab.ui.control.Label          % status bar text at the bottom 
 
         % ----- Tab 1: layout -----
-        ScenarioGrid            matlab.ui.container.GridLayout   % 3x3 grid holding the scenario panels [-]
+        ScenarioGrid            matlab.ui.container.GridLayout   % 3x3 grid holding the scenario panels 
 
         % ----- Tab 1: Preset panel -----
-        PresetPanel             matlab.ui.container.Panel        % panel 'Preset' [-]
-        PresetDropDown          matlab.ui.control.DropDown       % scenario preset; Items = display names, ItemsData = function names [-]
-        LoadPresetButton        matlab.ui.control.Button         % loads cfg = feval(preset function) [-]
-        SaveConfigButton        matlab.ui.control.Button         % saves the current cfg to a .mat file (saveConfig) [-]
-        LoadConfigButton        matlab.ui.control.Button         % loads a cfg from a .mat file (loadConfig) [-]
-        ConfigNameLabel         matlab.ui.control.Label          % shows cfg.name / cfg.description [-]
+        PresetPanel             matlab.ui.container.Panel        % panel 'Preset' 
+        PresetDropDown          matlab.ui.control.DropDown       % scenario preset; Items = display names, ItemsData = function names 
+        LoadPresetButton        matlab.ui.control.Button         % loads cfg = feval(preset function) 
+        SaveConfigButton        matlab.ui.control.Button         % saves the current cfg to a .mat file (saveConfig) 
+        LoadConfigButton        matlab.ui.control.Button         % loads a cfg from a .mat file (loadConfig) 
+        ConfigNameLabel         matlab.ui.control.Label          % shows cfg.name / cfg.description 
 
         % ----- Tab 1: Attitude error panel -----
-        AttitudePanel           matlab.ui.container.Panel        % panel 'Attitude error' [-]
-        AxisEditFields                                           % 1x3 NumericEditField, rotation axis of the initial error (normalised on read) [-]
+        AttitudePanel           matlab.ui.container.Panel        % panel 'Attitude error' 
+        AxisEditFields                                           % 1x3 NumericEditField, rotation axis of the initial error (normalised on read) 
         AngleEditField          matlab.ui.control.NumericEditField % initial attitude error angle [deg]
         AngleSlider             matlab.ui.control.Slider         % slider linked to AngleEditField, 0..180 [deg]
         RateEditFields                                           % 1x3 NumericEditField, initial body-rate error w.r.t. reference [deg/s]
 
         % ----- Tab 1: Reference / orbit panel -----
-        ReferencePanel          matlab.ui.container.Panel        % panel 'Reference / orbit' [-]
-        TargetModeDropDown      matlab.ui.control.DropDown       % reference mode: 0 inertial, 1 LVLH, 2 docking approach, 3 attitude scan [-]
+        ReferencePanel          matlab.ui.container.Panel        % panel 'Reference / orbit' 
+        TargetModeDropDown      matlab.ui.control.DropDown       % reference mode: 0 inertial, 1 LVLH, 2 docking approach, 3 attitude scan 
         AltitudeEditField       matlab.ui.control.NumericEditField % circular-orbit altitude [km]
         InclinationEditField    matlab.ui.control.NumericEditField % orbit inclination [deg]
         R0EditField             matlab.ui.control.NumericEditField % initial chaser-to-ISS range [m]
@@ -66,61 +63,61 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         ScanFreqEditFields                                       % 1x3 NumericEditField, mode-3 scan frequencies [rad/s]
 
         % ----- Tab 1: Inertia panel -----
-        InertiaPanel            matlab.ui.container.Panel        % panel 'Inertia' [-]
+        InertiaPanel            matlab.ui.container.Panel        % panel 'Inertia' 
         JnomTable               matlab.ui.control.Table          % editable 3x3 nominal inertia J_nom (kept symmetric) [kg*m^2]
         UncSlider               matlab.ui.control.Slider         % inertia uncertainty 0..50 [%]
         UncEditField            matlab.ui.control.NumericEditField % inertia uncertainty, linked to UncSlider [%]
-        UncModeDropDown         matlab.ui.control.DropDown       % uncertainty mode: 1 random per-parameter, 2 uniform scale [-]
-        SeedEditField           matlab.ui.control.NumericEditField % RNG seed for the random perturbation [-]
+        UncModeDropDown         matlab.ui.control.DropDown       % uncertainty mode: 1 random per-parameter, 2 uniform scale 
+        SeedEditField           matlab.ui.control.NumericEditField % RNG seed for the random perturbation 
         JtrueTable              matlab.ui.control.Table          % read-only 3x3 derived J_true from buildSimParams [kg*m^2]
-        JtrueNoteLabel          matlab.ui.control.Label          % info.notes from buildSimParams (J_true validity) [-]
+        JtrueNoteLabel          matlab.ui.control.Label          % info.notes from buildSimParams (J_true validity) 
 
         % ----- Tab 1: Disturbances panel -----
-        DisturbancePanel        matlab.ui.container.Panel        % panel 'Disturbances' [-]
-        DistCheckBoxes                                           % 1x4 CheckBox: GG, Aero, SRP, Mag enable flags [-]
-        DistScaleEditFields                                      % 1x4 NumericEditField: GG, Aero, SRP, Mag magnitude scale [-]
+        DisturbancePanel        matlab.ui.container.Panel        % panel 'Disturbances' 
+        DistCheckBoxes                                           % 1x4 CheckBox: GG, Aero, SRP, Mag enable flags 
+        DistScaleEditFields                                      % 1x4 NumericEditField: GG, Aero, SRP, Mag magnitude scale 
 
         % ----- Tab 1: Actuator & sensors panel -----
-        ActuatorPanel           matlab.ui.container.Panel        % panel 'Actuator & sensors' [-]
+        ActuatorPanel           matlab.ui.container.Panel        % panel 'Actuator & sensors' 
         TauMaxEditField         matlab.ui.control.NumericEditField % per-wheel torque limit [N*m]
         HMaxEditField           matlab.ui.control.NumericEditField % per-wheel momentum limit [N*m*s]
-        NoiseCheckBox           matlab.ui.control.CheckBox       % sensor-noise enable flag [-]
+        NoiseCheckBox           matlab.ui.control.CheckBox       % sensor-noise enable flag 
         AttNoiseEditField       matlab.ui.control.NumericEditField % attitude-sensor noise std [deg]
         GyroNoiseEditField      matlab.ui.control.NumericEditField % gyro white-noise std [deg/s]
 
         % ----- Tab 1: Simulation panel -----
-        SimulationPanel         matlab.ui.container.Panel        % panel 'Simulation' [-]
+        SimulationPanel         matlab.ui.container.Panel        % panel 'Simulation' 
         TfinalEditField         matlab.ui.control.NumericEditField % simulation stop time [s]
         DtEditField             matlab.ui.control.NumericEditField % fixed integration step [s]
         SettleThreshEditField   matlab.ui.control.NumericEditField % settling-time threshold on attitude error [deg]
 
         % ----- Tab 2: Controller gains -----
-        GainsTabGroup           matlab.ui.container.TabGroup     % nested tab group with one sub-tab per controller [-]
-        RobustGainsTab          matlab.ui.container.Tab          % sub-tab 'Robust SMC' [-]
-        AdaptiveGainsTab        matlab.ui.container.Tab          % sub-tab 'Adaptive SMC' [-]
-        BaselineGainsTab        matlab.ui.container.Tab          % sub-tab 'PD Benchmark' [-]
-        AblationCheckBox        matlab.ui.control.CheckBox       % keep adaptive Lambda, K, eta, phi = robust (clean ablation) [-]
+        GainsTabGroup           matlab.ui.container.TabGroup     % nested tab group with one sub-tab per controller 
+        RobustGainsTab          matlab.ui.container.Tab          % sub-tab 'Robust SMC' 
+        AdaptiveGainsTab        matlab.ui.container.Tab          % sub-tab 'Adaptive SMC' 
+        BaselineGainsTab        matlab.ui.container.Tab          % sub-tab 'PD Benchmark' 
+        AblationCheckBox        matlab.ui.control.CheckBox       % keep adaptive Lambda, K, eta, phi = robust (clean ablation) 
         WnEditField             matlab.ui.control.NumericEditField % PD design natural frequency wn [rad/s]
-        ZetaEditField           matlab.ui.control.NumericEditField % PD design damping ratio zeta [-]
-        ComputePDButton         matlab.ui.control.Button         % computes Kp/Kd from wn, zeta (pdGainsFromBandwidth) [-]
-        LoadDefaultsButtons                                      % 1x3 Button, 'Load defaults' per sub-tab (UserData = ctrl key) [-]
+        ZetaEditField           matlab.ui.control.NumericEditField % PD design damping ratio zeta 
+        ComputePDButton         matlab.ui.control.Button         % computes Kp/Kd from wn, zeta (pdGainsFromBandwidth) 
+        LoadDefaultsButtons                                      % 1x3 Button, 'Load defaults' per sub-tab (UserData = ctrl key) 
 
         % ----- Tab 3: Run -----
-        RunModeButtonGroup      matlab.ui.container.ButtonGroup  % run mode selector [-]
-        SingleRadioButton       matlab.ui.control.RadioButton    % run one controller [-]
-        CompareAllRadioButton   matlab.ui.control.RadioButton    % run all three controllers [-]
-        ControllerDropDown      matlab.ui.control.DropDown       % controller for single runs, ItemsData = ctrl_id 1..3 [-]
-        EngineDropDown          matlab.ui.control.DropDown       % engine: 'auto' | 'simulink' | 'reference' [-]
-        RunButton               matlab.ui.control.Button         % starts the simulation [-]
-        SimulinkLabel           matlab.ui.control.Label          % shows isSimulinkAvailable() [-]
-        LogTextArea             matlab.ui.control.TextArea       % read-only run log [-]
+        RunModeButtonGroup      matlab.ui.container.ButtonGroup  % run mode selector 
+        SingleRadioButton       matlab.ui.control.RadioButton    % run one controller 
+        CompareAllRadioButton   matlab.ui.control.RadioButton    % run all three controllers 
+        ControllerDropDown      matlab.ui.control.DropDown       % controller for single runs, ItemsData = ctrl_id 1..3 
+        EngineDropDown          matlab.ui.control.DropDown       % engine: 'auto' | 'simulink' | 'reference' 
+        RunButton               matlab.ui.control.Button         % starts the simulation 
+        SimulinkLabel           matlab.ui.control.Label          % shows isSimulinkAvailable() 
+        LogTextArea             matlab.ui.control.TextArea       % read-only run log 
 
         % ----- Tab 4: Results -----
-        ResultsModeDropDown     matlab.ui.control.DropDown       % 'overlay' | 'single' display mode [-]
-        ResultsCtrlDropDown     matlab.ui.control.DropDown       % which stored result to show in single mode (index into Results) [-]
-        ExportFigureButton      matlab.ui.control.Button         % exports the app window / axes to an image [-]
-        ExportCSVButton         matlab.ui.control.Button         % exports the metrics table to CSV [-]
-        ResultAxes                                               % 1x6 UIAxes, plots in the order of PlotQuantities [-]
+        ResultsModeDropDown     matlab.ui.control.DropDown       % 'overlay' | 'single' display mode 
+        ResultsCtrlDropDown     matlab.ui.control.DropDown       % which stored result to show in single mode (index into Results) 
+        ExportFigureButton      matlab.ui.control.Button         % exports the app window / axes to an image 
+        ExportCSVButton         matlab.ui.control.Button         % exports the metrics table to CSV 
+        ResultAxes                                               % 1x6 UIAxes, plots in the order of PlotQuantities 
         MetricsTable            matlab.ui.control.Table          % metrics table from metricsTable() [mixed]
     end
 
@@ -130,34 +127,33 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         RunCfg          % struct, snapshot of Cfg used for the last run (plots/metrics use it) [mixed]
         Results         % 1xK struct array of res (DESIGN_SPEC 6) from the last run [mixed]
         Metrics         % 1xK struct array of M (DESIGN_SPEC 5.1) from computeMetrics [mixed]
-        PassFlags       % 1xK logical, pass/fail per result from evaluatePassFail [-]
-        GainWidgets     % struct: GainWidgets.<ctrl>.<field> = 1xn uitable handle [-]
-        ProjectRoot     % char, absolute path of the project root folder [-]
-        WriteNotes = '' % char, notes from the last writeCfgToWidgets (clamped values etc.) [-]
+        PassFlags       % 1xK logical, pass/fail per result from evaluatePassFail 
+        GainWidgets     % struct: GainWidgets.<ctrl>.<field> = 1xn uitable handle 
+        ProjectRoot     % char, absolute path of the project root folder 
+        WriteNotes = '' % char, notes from the last writeCfgToWidgets (clamped values etc.) 
     end
 
     %% ===== Private constants =====
     properties (Constant, Access = private)
-        GainCtrls      = {'robust', 'adaptive', 'baseline'}              % cfg.gains keys, order = ctrl_id [-]
-        GainTabTitles  = {'Robust SMC', 'Adaptive SMC', 'PD Benchmark'}  % sub-tab titles [-]
-        AblationFields = {'lambda_diag', 'K_diag', 'eta', 'phi'}         % gain fields shared robust -> adaptive [-]
-        DistNames      = {'Gravity gradient', 'Aerodynamic', 'SRP', 'Magnetic'} % dist_enable/dist_scale order [-]
-        PlotQuantities = {'att_err', 'w_e', 'tau_rw', 'h_w', 'qnorm', 'theta_hat'} % plotResultsOnAxes quantities [-]
+        GainCtrls      = {'robust', 'adaptive', 'baseline'}              % cfg.gains keys, order = ctrl_id 
+        GainTabTitles  = {'Robust SMC', 'Adaptive SMC', 'PD Benchmark'}  % sub-tab titles 
+        AblationFields = {'lambda_diag', 'K_diag', 'eta', 'phi'}         % gain fields shared robust -> adaptive 
+        DistNames      = {'Gravity gradient', 'Aerodynamic', 'SRP', 'Magnetic'} % dist_enable/dist_scale order 
+        PlotQuantities = {'att_err', 'w_e', 'tau_rw', 'h_w', 'qnorm', 'theta_hat'} % plotResultsOnAxes quantities 
         PlotTitles     = {'Attitude error [deg]', 'Rate error |ω_e| [deg/s]', ...
                           'Wheel torque |τ| [N·m]', 'Wheel momentum max|h| [N·m·s]', ...
-                          'Quaternion norm deviation [-]', 'Adaptive θ̂/θ_true [-]'} % axes titles [-]
+                          'Quaternion norm deviation ', 'Adaptive θ_est/θ_true '} % axes titles 
     end
 
     %% ===== Callbacks: Scenario tab =====
     methods (Access = private)
 
         function startupFcn(app)
-        %STARTUPFCN Initialise the config from initDefaults and populate data-driven widgets.
+        % Initialise the config from initDefaults and populate data-driven widgets.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
-        % Outputs:
-        %   (none) - app.Cfg and all widgets are initialised in place
+        %   app - ADCS_ComparisonApp, this app instance                        
+        % Updates app.Cfg and all widgets are initialized in place
 
             %% ===== Default configuration =====
             try
@@ -202,11 +198,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function LoadPresetButtonPushed(app, event)
-        %LOADPRESETBUTTONPUSHED Load the selected scenario preset (cfg = feval(fname)) into all widgets.
+        % Load the selected scenario preset (cfg = feval(fname)) into all widgets.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ButtonPushedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - app.Cfg replaced, widgets refreshed
 
@@ -232,11 +228,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function SaveConfigButtonPushed(app, event)
-        %SAVECONFIGBUTTONPUSHED Save the current widget state as a cfg .mat file via saveConfig.
+        % Save the current widget state as a cfg .mat file via saveConfig.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ButtonPushedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - file written by saveConfig(file, cfg)
 
@@ -250,9 +246,9 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
             end
 
             %% ===== Choose file and save =====
-            d = fullfile(app.ProjectRoot, 'config', 'saved');           % default folder for saved configs [-]
+            d = fullfile(app.ProjectRoot, 'config', 'saved');           % default folder for saved configs 
             if ~isfolder(d), try, mkdir(d); catch, end, end              % create it if missing (best effort)
-            defFile = fullfile(d, 'ADCS_config.mat');                    % default file name [-]
+            defFile = fullfile(d, 'ADCS_config.mat');                    % default file name 
             [f, p] = uiputfile({'*.mat', 'ADCS configuration (*.mat)'}, 'Save configuration', defFile);
             figure(app.UIFigure);
             if isequal(f, 0)
@@ -271,16 +267,16 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function LoadConfigButtonPushed(app, event)
-        %LOADCONFIGBUTTONPUSHED Load a cfg .mat file via loadConfig and refresh all widgets.
+        % Load a cfg .mat file via loadConfig and refresh all widgets.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ButtonPushedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - app.Cfg replaced, widgets refreshed
 
             %% ===== Choose file =====
-            defDir = fullfile(app.ProjectRoot, 'config', 'saved');      % default folder for saved configs [-]
+            defDir = fullfile(app.ProjectRoot, 'config', 'saved');      % default folder for saved configs 
             if ~isfolder(defDir), try, mkdir(defDir); catch, end, end    % create it if missing (best effort)
             [f, p] = uigetfile({'*.mat', 'ADCS configuration (*.mat)'}, 'Load configuration', [defDir filesep]);
             figure(app.UIFigure);
@@ -304,10 +300,10 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function AngleSliderValueChanging(app, event)
-        %ANGLESLIDERVALUECHANGING Live-update the angle field while the slider is dragged.
+        % Live-update the angle field while the slider is dragged.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangingData, event.Value = angle [deg]
         % Outputs:
         %   (none)
@@ -316,11 +312,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function AngleSliderValueChanged(app, event)
-        %ANGLESLIDERVALUECHANGED Copy the final slider value into the angle field.
+        % Copy the final slider value into the angle field.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ValueChangedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
 
@@ -328,11 +324,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function AngleEditFieldValueChanged(app, event)
-        %ANGLEEDITFIELDVALUECHANGED Copy the typed angle into the slider.
+        % Copy the typed angle into the slider.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ValueChangedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
 
@@ -340,10 +336,10 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function UncSliderValueChanging(app, event)
-        %UNCSLIDERVALUECHANGING Live-update the uncertainty field while the slider is dragged.
+        % Live-update the uncertainty field while the slider is dragged.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
         %   event - matlab.ui.eventdata.ValueChangingData, event.Value = pct   [%]
         % Outputs:
         %   (none)
@@ -352,11 +348,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function UncSliderValueChanged(app, event)
-        %UNCSLIDERVALUECHANGED Copy the final slider value into the field and refresh J_true.
+        % Copy the final slider value into the field and refresh J_true.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ValueChangedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
 
@@ -365,11 +361,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function UncEditFieldValueChanged(app, event)
-        %UNCEDITFIELDVALUECHANGED Copy the typed uncertainty into the slider and refresh J_true.
+        % Copy the typed uncertainty into the slider and refresh J_true.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ValueChangedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
 
@@ -378,11 +374,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function InertiaParamChanged(app, event)
-        %INERTIAPARAMCHANGED Refresh J_true after the uncertainty mode or seed changed.
+        % Refresh J_true after the uncertainty mode or seed changed.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ValueChangedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
 
@@ -390,10 +386,10 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function JnomTableCellEdit(app, event)
-        %JNOMTABLECELLEDIT Keep J_nom symmetric by mirroring the edited element, then refresh J_true.
+        % Keep J_nom symmetric by mirroring the edited element, then refresh J_true.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
         %   event - matlab.ui.eventdata.CellEditData: Indices [1x2] (row, col),
         %           NewData [1] new value, PreviousData [1] old value        [kg*m^2]
         % Outputs:
@@ -423,11 +419,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function NoiseCheckBoxValueChanged(app, event)
-        %NOISECHECKBOXVALUECHANGED Enable or disable the noise-std fields with the noise checkbox.
+        % Enable or disable the noise-std fields with the noise checkbox.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ValueChangedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
 
@@ -440,10 +436,10 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
     methods (Access = private)
 
         function GainTableCellEdit(app, event)
-        %GAINTABLECELLEDIT Validate an edited gain element and keep the ablation mirror in sync.
+        % Validate an edited gain element and keep the ablation mirror in sync.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
         %   event - matlab.ui.eventdata.CellEditData; event.Source.UserData has
         %           ctrl (char), field (char), n (double); NewData [1]     [gain units]
         % Outputs:
@@ -469,12 +465,12 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function LoadGainDefaultsButtonPushed(app, event)
-        %LOADGAINDEFAULTSBUTTONPUSHED Replace one controller's gains by its *_default(J_nom).
+        % Replace one controller's gains by its *_default(J_nom).
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
         %   event - matlab.ui.eventdata.ButtonPushedData; event.Source.UserData
-        %           = 'robust' | 'adaptive' | 'baseline'                   [-]
+        %           = 'robust' | 'adaptive' | 'baseline'                   
         % Outputs:
         %   (none) - gain widgets and app.Cfg.gains.<ctrl> updated
 
@@ -509,11 +505,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function ComputePDButtonPushed(app, event)
-        %COMPUTEPDBUTTONPUSHED Fill Kp_diag/Kd_diag from pdGainsFromBandwidth(J_nom, wn, zeta).
+        % Fill Kp_diag/Kd_diag from pdGainsFromBandwidth(J_nom, wn, zeta).
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ButtonPushedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - baseline Kp_diag [N*m] and Kd_diag [N*m*s] tables updated
 
@@ -521,7 +517,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
                 %% ===== Design the PD gains =====
                 J    = readJnomFromTable(app);
                 wn   = app.WnEditField.Value;    % [rad/s]
-                zeta = app.ZetaEditField.Value;  % [-]
+                zeta = app.ZetaEditField.Value;  % 
                 [Kp, Kd] = pdGainsFromBandwidth(J, wn, zeta);
 
                 %% ===== Write the baseline gain tables =====
@@ -540,11 +536,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function AblationCheckBoxValueChanged(app, event)
-        %ABLATIONCHECKBOXVALUECHANGED Apply or release the robust -> adaptive gain mirror.
+        % Apply or release the robust -> adaptive gain mirror.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ValueChangedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
 
@@ -562,11 +558,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
     methods (Access = private)
 
         function RunModeSelectionChanged(app, event)
-        %RUNMODESELECTIONCHANGED Enable the controller dropdown only for single-controller runs.
+        % Enable the controller dropdown only for single-controller runs.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.SelectionChangedData, unused           [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.SelectionChangedData, unused           
         % Outputs:
         %   (none)
 
@@ -574,11 +570,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         end
 
         function RunButtonPushed(app, event)
-        %RUNBUTTONPUSHED Read widgets, run the simulation(s), compute metrics and show results.
+        % Read widgets, run the simulation(s), compute metrics and show results.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ButtonPushedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - app.Results, app.Metrics, app.PassFlags, app.RunCfg set
 
@@ -673,8 +669,8 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %RESULTSMODEDROPDOWNVALUECHANGED Switch between overlay and single-run display.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ValueChangedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
 
@@ -687,8 +683,8 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %RESULTSCTRLDROPDOWNVALUECHANGED Re-plot after another stored result was selected.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ValueChangedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ValueChangedData, unused               
         % Outputs:
         %   (none)
 
@@ -699,8 +695,8 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %EXPORTFIGUREBUTTONPUSHED Export the app window (exportapp), falling back to per-axes exportgraphics.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ButtonPushedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - image file(s) written
 
@@ -745,8 +741,8 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %EXPORTCSVBUTTONPUSHED Export the metrics table to CSV via exportMetricsCSV.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   event - matlab.ui.eventdata.ButtonPushedData, unused               [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   event - matlab.ui.eventdata.ButtonPushedData, unused               
         % Outputs:
         %   (none) - CSV file written
 
@@ -785,7 +781,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %READWIDGETSTOCFG Copy every widget value into app.Cfg (the ONLY widget -> cfg mapping).
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none) - app.Cfg updated in place; fields not exposed in the GUI
         %            (e.g. rho_kgm3, noise_seed) are kept unchanged
@@ -794,17 +790,17 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
             sc  = cfg.scenario;
 
             %% ===== Attitude error =====
-            ax = [app.AxisEditFields.Value].';                      % [-] raw axis
+            ax = [app.AxisEditFields.Value].';                      %  raw axis
             nrm = norm(ax);
             if nrm > 0
-                ax = ax / nrm;                                      % [-] normalised axis
+                ax = ax / nrm;                                      %  normalised axis
             end
-            sc.att_err_axis      = ax;                              % [3x1] [-]
+            sc.att_err_axis      = ax;                              % [3x1] 
             sc.att_err_angle_deg = app.AngleEditField.Value;        % [deg]
             sc.rate_err0_degps   = [app.RateEditFields.Value].';    % [3x1] [deg/s]
 
             %% ===== Reference / orbit =====
-            sc.target_mode    = app.TargetModeDropDown.Value;       % [-] 0|1|2|3
+            sc.target_mode    = app.TargetModeDropDown.Value;       %  0|1|2|3
             sc.orbit_alt_km   = app.AltitudeEditField.Value;        % [km]
             sc.orbit_incl_deg = app.InclinationEditField.Value;     % [deg]
             sc.R0_m           = app.R0EditField.Value;              % [m]
@@ -818,17 +814,17 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
             %% ===== Inertia =====
             sc.J_nom      = readJnomFromTable(app);                 % [3x3] [kg*m^2]
             sc.J_unc_pct  = app.UncEditField.Value;                 % [%]
-            sc.J_unc_mode = app.UncModeDropDown.Value;              % [-] 1|2
-            sc.J_unc_seed = app.SeedEditField.Value;                % [-]
+            sc.J_unc_mode = app.UncModeDropDown.Value;              %  1|2
+            sc.J_unc_seed = app.SeedEditField.Value;                % 
 
             %% ===== Disturbances =====
-            sc.dist_enable = double([app.DistCheckBoxes.Value]);    % [1x4] [-] GG Aero SRP Mag
-            sc.dist_scale  = [app.DistScaleEditFields.Value];       % [1x4] [-]
+            sc.dist_enable = double([app.DistCheckBoxes.Value]);    % [1x4]  GG Aero SRP Mag
+            sc.dist_scale  = [app.DistScaleEditFields.Value];       % [1x4] 
 
             %% ===== Actuator & sensors =====
             sc.wheel_tau_max_Nm     = app.TauMaxEditField.Value;    % [N*m]
             sc.wheel_h_max_Nms      = app.HMaxEditField.Value;      % [N*m*s]
-            sc.noise_enable         = double(app.NoiseCheckBox.Value); % [-] 0|1
+            sc.noise_enable         = double(app.NoiseCheckBox.Value); %  0|1
             sc.att_noise_std_deg    = app.AttNoiseEditField.Value;  % [deg]
             sc.gyro_noise_std_degps = app.GyroNoiseEditField.Value; % [deg/s]
 
@@ -874,7 +870,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %WRITECFGTOWIDGETS Copy app.Cfg into every widget (mirror of readWidgetsToCfg).
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none) - widgets updated; out-of-range values are clamped to the
         %            widget limits and reported in the status bar
@@ -983,10 +979,10 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %VALIDATECFG Check the widget-derived app.Cfg for values that would break a run.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance (call readWidgetsToCfg first) [-]
+        %   app - ADCS_ComparisonApp, this app instance (call readWidgetsToCfg first) 
         % Outputs:
-        %   ok  - logical [1], true if every check passed                    [-]
-        %   msg - char, newline-separated list of problems ('' if ok)        [-]
+        %   ok  - logical [1], true if every check passed                    
+        %   msg - char, newline-separated list of problems ('' if ok)        
 
             sc = app.Cfg.scenario;
             m  = {};
@@ -1036,21 +1032,21 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
 
             %% ===== Time grid consistency =====
             if sc.dt_s > 0 && sc.t_final_s > 0
-                nStep = sc.t_final_s / sc.dt_s;                  % [-] number of fixed steps
+                nStep = sc.t_final_s / sc.dt_s;                  %  number of fixed steps
                 if abs(nStep - round(nStep)) > 1e-9 * max(1, abs(nStep))
                     m{end+1} = 't_final must be an integer multiple of dt.';
                 end
             end
 
             %% ===== Gain sign and range checks =====
-            smcCtrls = {'robust', 'adaptive'};                   % controllers with a boundary layer [-]
+            smcCtrls = {'robust', 'adaptive'};                   % controllers with a boundary layer 
             for c = 1:numel(smcCtrls)
                 ctrl = smcCtrls{c};
                 g = app.Cfg.gains.(ctrl);
                 if isfield(g, 'phi') && any(~(double(g.phi(:)) > 0))
                     m{end+1} = sprintf('Gain %s.phi must be > 0.', ctrl); %#ok<AGROW>
                 end
-                nonNeg = {'K_diag', 'eta', 'Gamma_diag'};        % gain fields that must be >= 0 [-]
+                nonNeg = {'K_diag', 'eta', 'Gamma_diag'};        % gain fields that must be >= 0 
                 for i = 1:numel(nonNeg)
                     f = nonNeg{i};
                     if isfield(g, f) && any(~(double(g.(f)(:)) >= 0))
@@ -1077,7 +1073,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %READJNOMFROMTABLE Return the symmetrised J_nom from the editable table.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   J   - double [3x3], symmetric nominal inertia                    [kg*m^2]
 
@@ -1093,7 +1089,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %REFRESHJTRUE Read widgets, call buildSimParams and show the derived J_true.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none) - JtrueTable and JtrueNoteLabel updated; errors go to the status bar
 
@@ -1128,11 +1124,11 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %WRITEGAINWIDGETS Write one controller's gain struct into its generated uitables.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       [-]
-        %   ctrl - char, 'robust' | 'adaptive' | 'baseline'                  [-]
+        %   app  - ADCS_ComparisonApp, this app instance                       
+        %   ctrl - char, 'robust' | 'adaptive' | 'baseline'                  
         %   g    - struct, user gain struct (DESIGN_SPEC 4.1)                [gain units]
         % Outputs:
-        %   msgs - cell [1xm] of char, warnings (missing or wrong-size fields) [-]
+        %   msgs - cell [1xm] of char, warnings (missing or wrong-size fields) 
 
             %% ===== Loop over the generated tables =====
             msgs = {};
@@ -1163,12 +1159,12 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SYNCABLATIONWIDGETS Mirror robust Lambda, K, eta, phi into the adaptive tables when locked.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none) - adaptive tables updated and made read-only (or editable again)
 
             %% ===== Mirror or release each shared field =====
-            on = app.AblationCheckBox.Value;                 % [-] true -> adaptive tables follow robust
+            on = app.AblationCheckBox.Value;                 %  true -> adaptive tables follow robust
             for i = 1:numel(app.AblationFields)
                 f = app.AblationFields{i};
                 if isfield(app.GainWidgets.robust, f) && isfield(app.GainWidgets.adaptive, f)
@@ -1189,7 +1185,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %REFRESHRESULTS Redraw the six result axes and the metrics table.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none)
 
@@ -1259,8 +1255,8 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %RESETAXES Clear result axes i (legend, children, limits) and restore its title.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
-        %   i   - double [1], index into ResultAxes / PlotQuantities           [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
+        %   i   - double [1], index into ResultAxes / PlotQuantities           
         % Outputs:
         %   (none)
 
@@ -1277,7 +1273,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %UPDATERESULTSSELECTOR Fill the single-run selector with the names of the stored results.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none)
 
@@ -1299,13 +1295,13 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %FORMATRESULTLINE Build one log line summarising a result and its metrics.
         %
         % Inputs:
-        %   app     - ADCS_ComparisonApp, this app instance                    [-]
+        %   app     - ADCS_ComparisonApp, this app instance                    
         %   res     - struct, one result (DESIGN_SPEC 6)                     [mixed]
         %   M       - struct, metrics of res (DESIGN_SPEC 5.1)               [mixed]
-        %   pass    - logical [1], pass flag                                 [-]
-        %   reasons - cell of char or char, failure reasons                  [-]
+        %   pass    - logical [1], pass flag                                 
+        %   reasons - cell of char or char, failure reasons                  
         % Outputs:
-        %   line    - char, formatted log line                               [-]
+        %   line    - char, formatted log line                               
 
             %% ===== Verdict =====
             if pass
@@ -1340,9 +1336,9 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %GETMETRIC Return a scalar metric or NaN if the field is missing.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       [-]
+        %   app  - ADCS_ComparisonApp, this app instance                       
         %   M    - struct, metrics struct                                    [mixed]
-        %   name - char, field name                                          [-]
+        %   name - char, field name                                          
         % Outputs:
         %   v    - double [1], metric value or NaN                           [metric units]
 
@@ -1356,12 +1352,12 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SETNUMERICFIELD Assign a value to a numeric edit field, clamping it into the field limits.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       [-]
-        %   h    - matlab.ui.control.NumericEditField, target field          [-]
+        %   app  - ADCS_ComparisonApp, this app instance                       
+        %   h    - matlab.ui.control.NumericEditField, target field          
         %   v    - double [1], value to show                                 [field units]
-        %   name - char, cfg field name used in warnings                     [-]
+        %   name - char, cfg field name used in warnings                     
         % Outputs:
-        %   msg  - char, warning text ('' if the value was set unchanged)    [-]
+        %   msg  - char, warning text ('' if the value was set unchanged)    
 
             %% ===== Reject non-numeric and NaN values =====
             msg = '';
@@ -1393,12 +1389,12 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SETDROPDOWNVALUE Select a dropdown entry by its ItemsData value if it exists.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       [-]
-        %   dd   - matlab.ui.control.DropDown, target dropdown               [-]
-        %   v    - double [1] or char, ItemsData value to select             [-]
-        %   name - char, cfg field name used in warnings                     [-]
+        %   app  - ADCS_ComparisonApp, this app instance                       
+        %   dd   - matlab.ui.control.DropDown, target dropdown               
+        %   v    - double [1] or char, ItemsData value to select             
+        %   name - char, cfg field name used in warnings                     
         % Outputs:
-        %   msg  - char, warning text ('' if selected)                       [-]
+        %   msg  - char, warning text ('' if selected)                       
 
             msg = '';
             data = dd.ItemsData;
@@ -1418,10 +1414,10 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SETDROPDOWNITEMS Replace the Items and ItemsData of a dropdown safely.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   dd    - matlab.ui.control.DropDown, target dropdown              [-]
-        %   items - cell [1xK] of char, display names                        [-]
-        %   data  - 1xK numeric array or cell of char, ItemsData             [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   dd    - matlab.ui.control.DropDown, target dropdown              
+        %   items - cell [1xK] of char, display names                        
+        %   data  - 1xK numeric array or cell of char, ItemsData             
         % Outputs:
         %   (none)
 
@@ -1434,7 +1430,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %UPDATENOISEENABLE Enable the noise-std fields only when sensor noise is enabled.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none)
 
@@ -1447,9 +1443,9 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %NOTESUFFIX Status-bar suffix listing the notes of the last writeCfgToWidgets.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
-        %   s   - char, ' (notes: ...)' or '' when there were none           [-]
+        %   s   - char, ' (notes: ...)' or '' when there were none           
 
             if isempty(app.WriteNotes)
                 s = '';
@@ -1462,10 +1458,10 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %ONOFF Convert a logical to the char 'on' / 'off'.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
-        %   tf  - logical [1]                                                  [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
+        %   tf  - logical [1]                                                  
         % Outputs:
-        %   s   - char, 'on' if tf is true, else 'off'                       [-]
+        %   s   - char, 'on' if tf is true, else 'off'                       
 
             if tf
                 s = 'on';
@@ -1478,8 +1474,8 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %SETSTATUS Show a message in the status bar.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
-        %   msg - char, message text                                         [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
+        %   msg - char, message text                                         
         % Outputs:
         %   (none)
 
@@ -1492,8 +1488,8 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %APPENDLOG Append a time-stamped line to the run log.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
-        %   msg - char, message text                                         [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
+        %   msg - char, message text                                         
         % Outputs:
         %   (none)
 
@@ -1521,10 +1517,10 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %GAINCOLUMNNAMES Column headers for a 1xn gain table.
         %
         % Inputs:
-        %   app   - ADCS_ComparisonApp, this app instance                      [-]
-        %   n     - double [1], number of elements                           [-]
+        %   app   - ADCS_ComparisonApp, this app instance                      
+        %   n     - double [1], number of elements                           
         % Outputs:
-        %   names - cell [1xn] of char, column headers                       [-]
+        %   names - cell [1xn] of char, column headers                       
 
             switch n
                 case 1
@@ -1547,7 +1543,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATECOMPONENTS Create the figure and every UI component (App Designer style).
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none) - components stored in the public properties
 
@@ -1591,7 +1587,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATESCENARIOTAB Build tab 1: preset, attitude, reference, inertia, disturbance, actuator, simulation panels.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none)
 
@@ -1635,14 +1631,14 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
             [app.AttitudePanel, ag] = newPanel(app, g, 'Attitude error', 2, 1, [5 4]);
             ag.ColumnWidth = {'fit', '1x', '1x', '1x'};
             ag.RowHeight   = {22, 22, 40, 22, '1x'};
-            addLabel(app, ag, 1, 1, 'Rotation axis ê [-]', 'Axis of the initial attitude error (x, y, z); normalised when read');
+            addLabel(app, ag, 1, 1, 'Rotation axis ê ', 'Axis of the initial attitude error (x, y, z); normalised when read');
             flds = cell(1, 3);
             for k = 1:3
                 flds{k} = uieditfield(ag, 'numeric');
                 flds{k}.Layout.Row = 1;
                 flds{k}.Layout.Column = k + 1;
                 flds{k}.ValueDisplayFormat = '%.6g';
-                flds{k}.Tooltip = sprintf('Axis component %s [-]', char('x' + k - 1));
+                flds{k}.Tooltip = sprintf('Axis component %s ', char('x' + k - 1));
             end
             app.AxisEditFields = [flds{:}];
             addLabel(app, ag, 2, 1, 'Error angle [deg]', 'Initial attitude error angle about the axis, 0..180 deg');
@@ -1725,7 +1721,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
             app.UncModeDropDown.Layout.Row = 4;
             app.UncModeDropDown.Layout.Column = 2;
             app.UncModeDropDown.ValueChangedFcn = createCallbackFcn(app, @InertiaParamChanged, true);
-            addLabel(app, ig, 4, 3, 'Seed', 'RNG seed of the random perturbation [-]');
+            addLabel(app, ig, 4, 3, 'Seed', 'RNG seed of the random perturbation ');
             app.SeedEditField = uieditfield(ig, 'numeric', 'Limits', [0 Inf], 'RoundFractionalValues', 'on');
             app.SeedEditField.Layout.Row = 4;
             app.SeedEditField.Layout.Column = 4;
@@ -1756,7 +1752,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
             dg.ColumnWidth = {'1x', 'fit', 90};
             dg.RowHeight   = repmat({22}, 1, 5);
             addLabel(app, dg, 1, 1, 'Source (enable)', 'dist_enable flags');
-            addLabel(app, dg, 1, [2 3], 'Scale [-]', 'dist_scale multipliers on each torque');
+            addLabel(app, dg, 1, [2 3], 'Scale ', 'dist_scale multipliers on each torque');
             cbs = cell(1, 4);
             sfs = cell(1, 4);
             for k = 1:4
@@ -1767,7 +1763,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
                 sfs{k}.Layout.Row = k + 1;
                 sfs{k}.Layout.Column = 3;
                 sfs{k}.ValueDisplayFormat = '%.4g';
-                sfs{k}.Tooltip = sprintf('Magnitude multiplier of the %s torque [-]', app.DistNames{k});
+                sfs{k}.Tooltip = sprintf('Magnitude multiplier of the %s torque ', app.DistNames{k});
                 addLabel(app, dg, k + 1, 2, '×', '');
             end
             app.DistCheckBoxes = [cbs{:}];
@@ -1800,7 +1796,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATEGAINSTAB Build tab 2: nested sub-tabs generated from gainMetadata().
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none) - app.GainWidgets filled
 
@@ -1840,12 +1836,12 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATEGAINSUBTAB Generate one gain sub-tab: a labelled 1xn uitable per metadata row.
         %
         % Inputs:
-        %   app  - ADCS_ComparisonApp, this app instance                       [-]
-        %   tab  - matlab.ui.container.Tab, parent sub-tab                   [-]
-        %   ctrl - char, 'robust' | 'adaptive' | 'baseline'                  [-]
+        %   app  - ADCS_ComparisonApp, this app instance                       
+        %   tab  - matlab.ui.container.Tab, parent sub-tab                   
+        %   ctrl - char, 'robust' | 'adaptive' | 'baseline'                  
         %   rows - cell [Nx5], {field, label, units, n_elements, description} [mixed]
         % Outputs:
-        %   btn  - matlab.ui.control.Button, the sub-tab's 'Load defaults' button [-]
+        %   btn  - matlab.ui.control.Button, the sub-tab's 'Load defaults' button 
 
             %% ===== Sub-tab grid =====
             N  = size(rows, 1);
@@ -1889,7 +1885,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
                     app.WnEditField.Layout.Row = 1;
                     app.WnEditField.Layout.Column = 3;
                     app.WnEditField.ValueDisplayFormat = '%.4g';
-                    addLabel(app, tb, 1, 4, 'ζ [-]', 'Damping ratio for the PD design');
+                    addLabel(app, tb, 1, 4, 'ζ ', 'Damping ratio for the PD design');
                     app.ZetaEditField = uieditfield(tb, 'numeric', 'Limits', [0 Inf], 'Value', 0.9);
                     app.ZetaEditField.Layout.Row = 1;
                     app.ZetaEditField.Layout.Column = 5;
@@ -1936,7 +1932,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATERUNTAB Build tab 3: run mode, controller, engine, Run button, Simulink status and log.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none)
 
@@ -2006,7 +2002,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %CREATERESULTSTAB Build tab 4: display controls, 2x3 result axes, metrics table and exports.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none)
 
@@ -2076,14 +2072,14 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %NEWPANEL Create a titled panel in a grid cell with an inner grid layout.
         %
         % Inputs:
-        %   app       - ADCS_ComparisonApp, this app instance                  [-]
-        %   parent    - matlab.ui.container.GridLayout, parent grid          [-]
-        %   titleText - char, panel title                                    [-]
-        %   row, col  - double [1] or [1x2], Layout.Row / Layout.Column      [-]
-        %   gridSize  - double [1x2], [rows cols] of the inner grid          [-]
+        %   app       - ADCS_ComparisonApp, this app instance                  
+        %   parent    - matlab.ui.container.GridLayout, parent grid          
+        %   titleText - char, panel title                                    
+        %   row, col  - double [1] or [1x2], Layout.Row / Layout.Column      
+        %   gridSize  - double [1x2], [rows cols] of the inner grid          
         % Outputs:
-        %   pnl - matlab.ui.container.Panel, the panel                       [-]
-        %   grd - matlab.ui.container.GridLayout, the inner grid             [-]
+        %   pnl - matlab.ui.container.Panel, the panel                       
+        %   grd - matlab.ui.container.GridLayout, the inner grid             
 
             pnl = uipanel(parent, 'Title', titleText);
             pnl.Layout.Row = row;
@@ -2100,14 +2096,14 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %ADDLABEL Create a label in a grid cell.
         %
         % Inputs:
-        %   app    - ADCS_ComparisonApp, this app instance                     [-]
-        %   parent - matlab.ui.container.GridLayout, parent grid             [-]
-        %   row    - double [1] or [1x2], Layout.Row                         [-]
-        %   col    - double [1] or [1x2], Layout.Column                      [-]
-        %   txt    - char, label text                                        [-]
-        %   tip    - char, tooltip ('' for none)                             [-]
+        %   app    - ADCS_ComparisonApp, this app instance                     
+        %   parent - matlab.ui.container.GridLayout, parent grid             
+        %   row    - double [1] or [1x2], Layout.Row                         
+        %   col    - double [1] or [1x2], Layout.Column                      
+        %   txt    - char, label text                                        
+        %   tip    - char, tooltip ('' for none)                             
         % Outputs:
-        %   lbl    - matlab.ui.control.Label, the label                      [-]
+        %   lbl    - matlab.ui.control.Label, the label                      
 
             lbl = uilabel(parent, 'Text', txt);
             lbl.Layout.Row = row;
@@ -2121,15 +2117,15 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %ADDNUMERICROW Create a 'label | numeric edit field' row in a 2-column grid.
         %
         % Inputs:
-        %   app            - ADCS_ComparisonApp, this app instance             [-]
-        %   parent         - matlab.ui.container.GridLayout, parent grid     [-]
-        %   row            - double [1], grid row                            [-]
-        %   labelText      - char, label including units                     [-]
-        %   tip            - char, tooltip for label and field               [-]
+        %   app            - ADCS_ComparisonApp, this app instance             
+        %   parent         - matlab.ui.container.GridLayout, parent grid     
+        %   row            - double [1], grid row                            
+        %   labelText      - char, label including units                     
+        %   tip            - char, tooltip for label and field               
         %   limits         - double [1x2], allowed range of the value        [field units]
-        %   lowerInclusive - char, 'on' | 'off', whether limits(1) is allowed [-]
+        %   lowerInclusive - char, 'on' | 'off', whether limits(1) is allowed 
         % Outputs:
-        %   fld            - matlab.ui.control.NumericEditField, the field   [-]
+        %   fld            - matlab.ui.control.NumericEditField, the field   
 
             %% ===== Valid initial value (set BEFORE an open lower limit is applied) =====
             if strcmp(lowerInclusive, 'off')
@@ -2156,14 +2152,14 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %ADDTRIPLETROW Create a 'label | three numeric fields' row in a 2-column grid.
         %
         % Inputs:
-        %   app       - ADCS_ComparisonApp, this app instance                  [-]
-        %   parent    - matlab.ui.container.GridLayout, parent grid          [-]
-        %   row       - double [1], grid row                                 [-]
-        %   labelText - char, label including units                          [-]
-        %   tip       - char, tooltip for the label and the fields           [-]
+        %   app       - ADCS_ComparisonApp, this app instance                  
+        %   parent    - matlab.ui.container.GridLayout, parent grid          
+        %   row       - double [1], grid row                                 
+        %   labelText - char, label including units                          
+        %   tip       - char, tooltip for the label and the fields           
         %   limits    - double [1x2], allowed range of each value (inclusive) [field units]
         % Outputs:
-        %   flds      - 1x3 matlab.ui.control.NumericEditField, the fields   [-]
+        %   flds      - 1x3 matlab.ui.control.NumericEditField, the fields   
 
             %% ===== Label and nested 1x3 grid =====
             addLabel(app, parent, row, 1, labelText, tip);
@@ -2194,7 +2190,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %ENSUREPATHS Run startup_ADCS from the project root if the library is not on the path.
         %
         % Inputs:
-        %   root - char, absolute project root folder                        [-]
+        %   root - char, absolute project root folder                        
         % Outputs:
         %   (none) - MATLAB path updated (run in this function's own workspace
         %            so the startup script cannot touch caller or base variables)
@@ -2222,7 +2218,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         % Inputs:
         %   (none)
         % Outputs:
-        %   app - ADCS_ComparisonApp, the running app instance (cleared if nargout == 0) [-]
+        %   app - ADCS_ComparisonApp, the running app instance (cleared if nargout == 0) 
 
             %% ===== Paths =====
             app.ProjectRoot = fileparts(fileparts(mfilename('fullpath')));
@@ -2242,7 +2238,7 @@ classdef ADCS_ComparisonApp < matlab.apps.AppBase
         %DELETE Delete the app and its figure.
         %
         % Inputs:
-        %   app - ADCS_ComparisonApp, this app instance                        [-]
+        %   app - ADCS_ComparisonApp, this app instance                        
         % Outputs:
         %   (none)
 

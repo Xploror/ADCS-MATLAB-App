@@ -1,25 +1,22 @@
 function res = simulateADCS_ref(SC, RG, AG, BG, ctrl_id)
-%SIMULATEADCS_REF Reference engine: fixed-step RK4 closed-loop attitude simulation.
+% Reference engine: fixed-step RK4 closed-loop attitude simulation.
 %
 % Inputs:
-%   SC      - struct, sim constants from buildSimParams                  [mixed SI]
-%   RG      - struct, robust gains                                        [SI]
-%   AG      - struct, adaptive gains                                      [SI]
-%   BG      - struct, baseline gains                                      [SI]
-%   ctrl_id - double [1], 1 robust SMC, 2 adaptive SMC, 3 PD benchmark    [-]
+%   SC      - struct, sim constants from buildSimParams
+%   RG      - struct, robust gains
+%   AG      - struct, adaptive gains
+%   BG      - struct, baseline gains
+%   ctrl_id - double [1], 1 robust SMC, 2 adaptive SMC, 3 PD benchmark
 % Outputs:
-%   res     - struct, result struct (docs/DESIGN_SPEC.md 6): time series
-%             t [Nx1] [s], q, w, q_r, w_r, q_e, w_e, att_err_deg, s, tau_cmd,
+%   res     - struct, result struct: t, q, w, q_r, w_r, q_e, w_e, att_err_deg, s, tau_cmd,
 %             tau_rw, h_w, theta_hat, tau_d, tau_gg, tau_aero, tau_srp,
 %             tau_mag, qnorm, sat_flags; and metadata ctrl_id, ctrl_name,
-%             engine, SC, RG, AG, BG, wallclock_s                        [mixed]
+%             engine, SC, RG, AG, BG, wallclock_s
 %
-% Method: classical RK4 with step SC.dt, the same step as the Simulink ode4
-% solver. The controller, sensors, wheels and disturbances are evaluated at
-% every RK4 stage (as in Simulink). Sensor noise is sampled once per step and
-% held. After each step h_w is clamped to +-h_max and theta_hat to
-% [theta_min, theta_max] (the Simulink integrator limits). Logged values at
-% t_k are the block outputs evaluated at the state x_k.
+% Method: classical RK4 with step SC.dt. The controller, sensors, wheels and 
+% disturbances are evaluated at every RK4 stage. Sensor noise is sampled once 
+% per step and held. After each step h_w and theta_hat are physically constraint. 
+% Logged values at t_k are the block outputs evaluated at the state x_k.
 % State x = [q_raw(4); w(3); h_w(3); theta_hat(6); b(3)] (19x1).
 
 wall = tic;
@@ -27,7 +24,7 @@ wall = tic;
 %% ===== Time grid and preallocation =====
 dt = SC.dt;
 N  = floor(SC.t_final/dt + 0.5) + 1;
-t  = (0:N-1).'*dt;
+t  = (0:N-1)'*dt;
 L = struct();
 L.q = zeros(N,4);  L.w = zeros(N,3);  L.q_r = zeros(N,4);  L.w_r = zeros(N,3);
 L.q_e = zeros(N,4); L.w_e = zeros(N,3); L.att_err_deg = zeros(N,1); L.s = zeros(N,3);
@@ -35,8 +32,8 @@ L.tau_cmd = zeros(N,3); L.tau_rw = zeros(N,3); L.h_w = zeros(N,3); L.theta_hat =
 L.tau_d = zeros(N,3); L.tau_gg = zeros(N,3); L.tau_aero = zeros(N,3); L.tau_srp = zeros(N,3);
 L.tau_mag = zeros(N,3); L.qnorm = zeros(N,1); L.sat_flags = zeros(N,6);
 
-%% ===== Initial state and noise generator =====
-x = [SC.q0(:); SC.w0(:); SC.h_w0(:); AG.theta_hat0(:); zeros(3,1)];
+%% ===== Initial state setup =====
+x = [SC.q0; SC.w0; SC.h_w0; AG.theta_hat0; zeros(3,1)]; % 19x1
 if SC.noise_enable > 0.5
     seedRNG(SC.noise_seed);
 end
@@ -110,27 +107,27 @@ end
 
 %% ===== Local functions =====
 function r = localRef(t, SC)
-%LOCALREF Reference attitude packed in a struct.
+% Reference attitude packed in a struct.
 %
 % Inputs:
 %   t  - double [1], time                                                 [s]
 %   SC - struct, sim constants                                            [mixed SI]
 % Outputs:
-%   r  - struct, q_r [4x1] [-], w_r [3x1] [rad/s], wdot_r [3x1] [rad/s^2]
+%   r  - struct, q_r [4x1] , w_r [3x1] [rad/s], wdot_r [3x1] [rad/s^2]
 
 [q_r, w_r, wdot_r] = referenceAttitude(t, SC);
 r = struct('q_r', q_r, 'w_r', w_r, 'wdot_r', wdot_r);
 end
 
 function [xdot, o] = localDeriv(t, x, ref, noise, ctrl_id, SC, RG, AG, BG)
-%LOCALDERIV Closed-loop state derivative (same block chain as the Simulink harness).
+% Closed-loop state derivative (same block chain as the Simulink harness).
 %
 % Inputs:
 %   t       - double [1], time                                            [s]
 %   x       - double [19x1], state [q_raw; w; h_w; theta_hat; b]          [mixed SI]
 %   ref     - struct, reference q_r, w_r, wdot_r at t                     [mixed SI]
-%   noise   - double [9x1], held unit normal samples [n_att; n_gyro; n_bias] [-]
-%   ctrl_id - double [1], controller id                                   [-]
+%   noise   - double [9x1], held unit normal samples [n_att; n_gyro; n_bias] 
+%   ctrl_id - double [1], controller id                                   
 %   SC, RG, AG, BG - structs, sim constants and gains                     [mixed SI]
 % Outputs:
 %   xdot    - double [19x1], state derivative                             [mixed SI]

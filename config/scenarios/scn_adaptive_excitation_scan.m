@@ -8,7 +8,7 @@ function cfg = scn_adaptive_excitation_scan()
 %
 % Rationale: in the docking-approach scenarios the reference is almost
 % stationary in LVLH, so the regressor Y is not persistently exciting and
-% the inertia estimate cannot converge (notes.md caveat L3). This scenario
+% the inertia estimate cannot converge. This scenario
 % commands a 3-axis sinusoidal scan about the LVLH-hold attitude with
 % incommensurate frequencies, which excites all six inertia parameters.
 % A faster adaptation gain is used here (Gamma = 5e9) because excitation is

@@ -1,8 +1,8 @@
 function cfg = loadConfig(file)
-%LOADCONFIG Load a saved configuration, validate its version and fill missing fields.
+% Load a saved configuration, validate its version and fill missing fields.
 %
 % Inputs:
-%   file - char, .mat file written by saveConfig                         [-]
+%   file - char, .mat file written by saveConfig                         
 % Outputs:
 %   cfg  - struct, configuration; any field missing in the file is filled
 %          recursively from initDefaults()                               [mixed]
@@ -15,10 +15,10 @@ end
 cfg = S.cfg;
 
 %% ===== Version check =====
-supported = 1;   % [-] highest format_version understood by this build
+supported = 1;   %  highest format_version understood by this build
 if ~isfield(cfg, 'format_version')
     warning('loadConfig:noVersion', 'No format_version in ''%s''; assuming version 1.', file);
-    cfg.format_version = 1;                              % [-] assume the first format version
+    cfg.format_version = 1;                              %  assume the first format version
 elseif cfg.format_version > supported
     error('loadConfig:version', 'format_version %g is newer than supported (%d).', cfg.format_version, supported);
 end

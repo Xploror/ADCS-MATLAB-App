@@ -1,14 +1,12 @@
 function C_RN = referenceDCM(t, SC)
-%REFERENCEDCM Reference-frame DCM C_RN for the selected target mode.
+% Reference-frame DCM C_RN for the selected target mode.
 %
 % Inputs:
-%   t  - double [1], simulation time                                      [s]
+%   t  - double [1], simulation time in secs
 %   SC - struct, uses SC.mode (0 inertial, 1 LVLH hold, 2 docking approach,
-%        3 LVLH-relative attitude scan) [-], SC.q_inertial_ref [4x1] [-],
-%        orbit and approach fields (see approachProfile), and for mode 3
-%        SC.scan_amp [3x1] [rad] and SC.scan_freq [3x1] [rad/s]
+%        3 LVLH-relative attitude scan)
 % Outputs:
-%   C_RN - double [3x3], DCM from N to the reference frame R             [-]
+%   C_RN - double [3x3], DCM from N to the reference frame R
 
 %% ===== Inertial hold =====
 if SC.mode < 0.5
@@ -28,14 +26,14 @@ end
 %% ===== Build C_RO = [b1'; b2'; b3'] =====
 b1 = u;
 b2 = cross([0; 0; 1], b1);
-nb2 = sqrt(b2.'*b2);
+nb2 = sqrt(b2'*b2);
 if nb2 > 1e-12
     b2 = b2/nb2;
 else
     b2 = [0; 1; 0];                    % degenerate: LOS along O3
 end
 b3 = cross(b1, b2);
-C_RO = [b1.'; b2.'; b3.'];
+C_RO = [b1'; b2'; b3'];
 C_RN = C_RO*C_ON;
 
 %% ===== Mode 3: sinusoidal scan about the LVLH-hold attitude =====

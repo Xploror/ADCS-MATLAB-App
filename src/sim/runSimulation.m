@@ -1,21 +1,21 @@
 function results = runSimulation(cfg, ctrl_ids, engine)
-%RUNSIMULATION Run one or more controllers on a configuration with the chosen engine.
+% Run the experiment on a chosen engine (supports MATLAB/Simulink(priority))
 %
 % Inputs:
-%   cfg      - struct, user-level configuration (initDefaults / scn_*)   [mixed]
+%   cfg      - struct, user-level configuration (initDefaults / scn_*)
 %   ctrl_ids - double [1xK], controller ids (1 robust, 2 adaptive, 3 PD);
-%              optional, default [1 2 3]                                 [-]
+%              optional, default [1 2 3]
 %   engine   - char, 'auto' | 'simulink' | 'reference'; optional,
-%              default 'auto' (Simulink if available, else reference)    [-]
+%              default 'auto' (Simulink if available, else reference)
 % Outputs:
-%   results  - struct [1xK], result structs (docs/DESIGN_SPEC.md 6)      [mixed]
+%   results  - struct [1xK], result structs
 
 %% ===== Defaults and parameter build =====
 if nargin < 2 || isempty(ctrl_ids)
-    ctrl_ids = [1 2 3];                                  % [-] default: all three controllers
+    ctrl_ids = [1 2 3];                                  % default: all three controllers
 end
 if nargin < 3 || isempty(engine)
-    engine = 'auto';                                     % [-] default engine: Simulink if available, else reference
+    engine = 'auto';                                     % default engine: Simulink if available, else reference
 end
 engine = lower(engine);
 [SC, RG, AG, BG] = buildSimParams(cfg);
