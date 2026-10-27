@@ -7,7 +7,7 @@ function [r_hat_N, v_hat_N, C_ON] = orbitGeometry(t, SC)
 % Outputs:
 %   r_hat_N - double [3x1], unit radial (zenith) direction in N
 %   v_hat_N - double [3x1], unit velocity (along-track) direction in N
-%   C_ON    - double [3x3], LVLH DCM, rows o1 = v_hat, o2 = -orbit normal,
+%   C_ON    - double [3x3], LVLH DCM (N -> O), rows o1 = v_hat, o2 = -orbit normal,
 %             o3 = nadir = -r_hat
 
 th = SC.n*t;

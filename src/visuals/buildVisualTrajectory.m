@@ -2,9 +2,9 @@ function V = buildVisualTrajectory(res, opts)
 % Geometry of the 3D playback (positions, rotations, line of sight, torque arrows) for one run.
 %
 % Inputs:
-%   res  - struct, one result of runSimulation; uses t, q, q_r,
+%   res  - result struct, one result of runSimulation; uses t, q, q_r,
 %          tau_rw, sat_flags, att_err_deg, ctrl_id, ctrl_name and res.SC        [mixed]
-%   opts - struct (optional), display options; missing fields take defaults:
+%   opts - optional struct (optional), display options; missing fields take defaults:
 %          mag_k        - double [1], attitude-error display magnification (1 = true) [-]
 %          hold_range_m - double [1], hold-point range for modes 0, 1, 3 ([] = SC.R0) [m]
 %          C_SO         - double [3x3], ISS attitude w.r.t. LVLH (eye = +XVV/+ZLV) [-]
@@ -76,7 +76,7 @@ V.range_m = zeros(N,1);
 V.M_BO = zeros(3,3,N);
 V.M_BO_disp = zeros(3,3,N);
 V.M_RO = zeros(3,3,N);
-V.M_SO = C_SO.';
+V.M_SO = C_SO';
 V.u_O = zeros(N,3);
 V.e_point_deg = zeros(N,1);
 V.A_O = zeros(3,3,N);
@@ -107,7 +107,7 @@ for m = 1:N
     C_RN = qToDCM(res.q_r(m,:)');
     V.M_BO(:,:,m) = C_ON*C_BN';
     V.M_RO(:,:,m) = C_ON*C_RN';
-    V.M_BO_disp(:,:,m) = C_ON*magnifiedAttitude(res.q(m,:).', res.q_r(m,:).', C_BN, C_RN, mag_k).';
+    V.M_BO_disp(:,:,m) = C_ON*magnifiedAttitude(res.q(m,:)', res.q_r(m,:)', C_BN, C_RN, mag_k)';
 
     % line of sight and pointing error (always the true attitude)
     u = -rho/norm(rho);

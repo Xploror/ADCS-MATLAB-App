@@ -3,6 +3,7 @@ _tmp/
 slprj/
 *.slxc
 *.asv
+.local
 models/ADCS_ComparisonHarness.slx
 models/ADCS_Params.sldd
 config/saved/*.mat
