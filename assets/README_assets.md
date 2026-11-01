@@ -5,6 +5,7 @@ The 3D View works without any file in this folder. When a file below is present,
 | File | Used by | Fallback when missing |
 |---|---|---|
 | `models/iss.stl` | `spacecraftMeshes` (ISS mesh) | Built-in ISS made of boxes and cylinders (109 m truss) |
+| `textures/earth.jpg` | `drawScene3D` (Earth texture) | `topo.mat` if it is on the MATLAB path, else a plain blue sphere |
 
 The chaser is always the built-in shape.
 
@@ -18,4 +19,8 @@ NASA offers the ISS model "International Space Station (ISS) (A)" as a GLB file 
 
 The loader centres the model and scales its largest extent to 109 m. If the model appears rotated, pass a correcting rotation through `spacecraftMeshes(struct('iss_R', R))`. Credit: NASA/Ames Research Center. NASA media is generally not under US copyright, but credit is required and NASA logos may not be used.
 
-It is advised to **kept large files in the gitignore** to avoid large file upload issues.
+## Adding an Earth texture
+
+Save any equi-rectangular (2:1) Earth image as `textures/earth.jpg`, with north at the top and longitude −180° on the left. NASA Blue Marble images (https://visibleearth.nasa.gov/) work well at 2048×1024. Credit: NASA Earth Observatory. The model ignores Earth rotation and fixes the ascending node at zero, so the Earth's longitude in the view is arbitrary.
+
+It is advised to **keep large files in the gitignore** to avoid large file upload issues.
