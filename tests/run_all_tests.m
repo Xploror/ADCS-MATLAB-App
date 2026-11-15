@@ -1,5 +1,5 @@
 function summary = run_all_tests()
-%RUN_ALL_TESTS Run every tests/test_*.m function, print a PASS/FAIL/SKIP table and return a summary.
+% Run every tests/test_*.m function, print a PASS/FAIL/SKIP table and return a summary.
 %
 % Inputs:
 %   (none)
