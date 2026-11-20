@@ -24,7 +24,7 @@ if nargin < 5 || isempty(opts)
     opts = struct();
 end
 kc = optField(opts, 'chaser_scale', 1);              % [-] chaser enlargement
-L = optField(opts, 'arrow_len_m', 3);                % [m] full-scale torque arrow
+L = optField(opts, 'arrow_len_m', 10);                % [m] full-scale torque arrow
 root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 tex_file = optField(opts, 'texture_file', fullfile(root, 'assets', 'textures', 'earth.jpg'));
 space = [0.03 0.03 0.08];                            % [-] background colour
@@ -44,6 +44,7 @@ else
     H.earth = surf(axG, R*X, R*Y, R*Z, 'CData', img, 'FaceColor', 'texturemap', 'EdgeColor', 'none');
 end
 H.earth.FaceLighting = 'gouraud';
+
 H.layer.orbits = hggroup('Parent', axG);
 plot3(V.orbit_E(:,1)*km, V.orbit_E(:,2)*km, V.orbit_E(:,3)*km, '--', 'Color', [0.5 0.8 1], 'Parent', H.layer.orbits);
 H.arcI = plot3(V.r_I_E(1,1)*km, V.r_I_E(1,2)*km, V.r_I_E(1,3)*km, '-', 'Color', [0.3 0.9 1], 'LineWidth', 2, 'Parent', H.layer.orbits);
@@ -52,11 +53,13 @@ H.markI = plot3(axG, V.r_I_E(1,1)*km, V.r_I_E(1,2)*km, V.r_I_E(1,3)*km, 'o', 'Ma
                 'MarkerFaceColor', [0.3 0.9 1], 'MarkerEdgeColor', 'w');
 H.markC = plot3(axG, V.r_C_E(1,1)*km, V.r_C_E(1,2)*km, V.r_C_E(1,3)*km, '^', 'MarkerSize', 7, ...
                 'MarkerFaceColor', [1 0.6 0.2], 'MarkerEdgeColor', 'w');
+
 H.layer.sun = hggroup('Parent', axG);
 s = 1.6*R*V.sun_E;
 line([0 s(1)], [0 s(2)], [0 s(3)], 'Color', [1 0.85 0.2], 'LineWidth', 1.5, 'Parent', H.layer.sun);
 text(s(1), s(2), s(3), ' Sun', 'Color', [1 0.85 0.2], 'Parent', H.layer.sun);
 light(axG, 'Position', V.sun_E, 'Style', 'infinite');
+
 axis(axG, 'equal');
 styleAxes(axG, space, fg);
 xlabel(axG, 'x_{ECI} [km]');
@@ -90,16 +93,17 @@ line([Mx.port_S(1) pe(1)], [Mx.port_S(2) pe(2)], [Mx.port_S(3) pe(3)], 'Color', 
      'LineStyle', '--', 'LineWidth', 1.5, 'Parent', H.issTf);
 text(pe(1), pe(2), pe(3), ' target port (illustrative)', 'Color', [1 0.5 1], 'FontSize', 8, 'Parent', H.issTf);
 
-%% ===== Proximity view: chaser, reference ghost, torque arrows =====
-H.layer.chaser = hggroup('Parent', axP);
-H.chsTf = hgtransform('Parent', H.layer.chaser);
-H.chsScale = hgtransform('Parent', H.chsTf, 'Matrix', makehgtform('scale', kc));
-drawParts(Mx.chaser, H.chsScale);
-drawTriad(H.chsScale, 6, {'b_1', 'b_2', 'b_3'}, '-');
+%% ===== Proximity view: reference ghost, chaser, torque arrows =====
+
 H.layer.reference = hggroup('Parent', axP);
 H.refTf = hgtransform('Parent', H.layer.reference);
 H.refScale = hgtransform('Parent', H.refTf, 'Matrix', makehgtform('scale', kc));
 drawTriad(H.refScale, 7, {'', '', ''}, ':');
+
+H.layer.chaser = hggroup('Parent', axP);
+H.chsTf = hgtransform('Parent', H.layer.chaser);
+H.chsScale = hgtransform('Parent', H.chsTf, 'Matrix', makehgtform('scale', kc));
+
 H.layer.torque = hggroup('Parent', H.chsScale);
 H.arrowColor = [0.95 0.35 0.35; 0.35 0.95 0.35; 0.45 0.55 1.00];
 H.arrow = gobjects(1, 4);
@@ -110,6 +114,10 @@ end
 H.arrow(4) = quiver3(axP, 0, 0, 0, 0, 0, 0, 0, 'Color', [1 1 1], 'LineWidth', 1.5, 'MaxHeadSize', 0.6);
 H.arrow(4).Parent = H.layer.torque;
 H.arrow_len_m = L;
+
+H.layer.chaserMesh = hggroup('Parent', H.chsScale);
+drawParts(Mx.chaser, H.layer.chaserMesh);
+drawTriad(H.layer.chaserMesh, 6, {'b_1', 'b_2', 'b_3'}, '-');
 
 %% ===== Proximity view: line of sight, docking axis, approach trace =====
 H.layer.los = hggroup('Parent', axP);
