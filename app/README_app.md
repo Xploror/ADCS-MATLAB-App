@@ -75,6 +75,25 @@ J_nom edits do **not** recompute gains automatically. Press **Load defaults** or
 - **Export figure…** calls `exportapp(UIFigure, file)` (png/pdf/jpg). If that fails, it falls back to `exportgraphics` on each axes, writing `<name>_<quantity>.<ext>`.
 - **Export metrics CSV…** calls `exportMetricsCSV(file, header, rows)`.
 
+### 5. 3D View
+This tab replays one stored result in 3D. It is rebuilt after every run and whenever another controller is chosen. It contains no physics: geometry comes from `buildVisualTrajectory`, meshes from `spacecraftMeshes`, and drawing from `drawScene3D` / `updateScene3D` (DESIGN_SPEC §8).
+
+| Control | Effect |
+|---|---|
+| **Controller** | Which stored result is shown (one controller at a time). |
+| **Play / Pause** | Starts or stops a fixed-spacing `timer` (period 0.05 s, BusyMode drop). Each tick advances `t_play` by speed × wall time, calls `visualSampleIndex`, then `updateScene3D` (`drawnow limitrate`, about 20 frames per second at most). |
+| **Speed** | Speed factor from 1× to 200× (default 20×). |
+| **Loop** | Wraps at the end of the run; otherwise playback stops at the end. |
+| **Time slider** | Scrubs (drag or click). It pauses playback and shows the nearest stored sample. |
+| **Attitude error drawn ×** | 1 (true, the default), 10 or 100. Display only: the HUD and all numbers keep the true values. |
+| **Proximity camera** | ISS-centred, chaser follow, or along the docking axis. The zenith is always up. |
+| **Chaser size** | True size, ×5 (the default) or ×10. Display only; the torque arrows scale with the chaser. A size change only rescales; the trajectory is not rebuilt. |
+| **Show** | Toggles the orbits, Sun direction, LVLH axes, reference axes, line of sight and docking axis, torque arrows, approach path and chaser mesh. |
+
+The left axes show the global view in km: the Earth, the ISS orbit with the travelled arc, and the chaser orbit (within 0.5 km of the ISS orbit). The right axes show the LVLH proximity view in metres. The HUD shows time, range, true attitude and pointing errors, and torque and momentum saturation flags.
+
+A new run, a controller change or closing the window stops playback. `delete(app)` and the window's close request stop and delete the timer.
+
 ### Status bar
 The bottom line shows the latest message: loads, saves, validation, clamped values, J_true warnings and errors. Its tooltip holds the full text.
 
