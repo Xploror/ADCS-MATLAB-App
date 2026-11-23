@@ -14,7 +14,9 @@ function H = drawScene3D(axG, axP, V, Mx, opts)
 %   H    - struct of graphics handles used by updateScene3D, plus
 %          earth_source (char) and layer groups (hggroup handles) for visibility:
 %          H.layer.orbits, .sun, .lvlh, .iss, .chaser, .reference, .los, .torque, .trace;
+%          (.los holds two groups: line of sight and body-fixed docking axis ray)
 %          H.line_idx (at most about 500 samples drawn on the growing lines) and H.axP
+%          H.fg (axis color) and H.sceneTf (root transform of proximity scene)
 %
 % Units: the global view is drawn in km, the proximity view in metres.
 % The proximity camera keeps the zenith (-o3) up.
@@ -73,7 +75,8 @@ hold(axG, 'off');
 %% ===== Proximity view: LVLH axes definitions =====
 cla(axP);
 hold(axP, 'on');
-H.layer.lvlh = hggroup('Parent', axP);
+H.sceneTf = hgtransform('Parent', axP);
+H.layer.lvlh = hggroup('Parent', H.sceneTf);
 la = 40;                                             % [m] LVLH axis length
 names = {'V-bar (+o_1)', 'H-bar (+o_2)', 'R-bar (+o_3, nadir)'};
 for j = 1:3
@@ -84,23 +87,23 @@ for j = 1:3
 end
 
 %% ===== Proximity view: ISS =====
-H.layer.iss = hggroup('Parent', axP);
+H.layer.iss = hggroup('Parent', H.sceneTf);
 H.issTf = hgtransform('Parent', H.layer.iss, 'Matrix', [V.M_SO zeros(3,1); zeros(1,3) 1]);
 drawParts(Mx.iss, H.issTf);
 drawTriad(H.issTf, 30, {'x_S', 'y_S', 'z_S'}, '-');
 pe = Mx.port_S + 25*Mx.port_axis_S;
 line([Mx.port_S(1) pe(1)], [Mx.port_S(2) pe(2)], [Mx.port_S(3) pe(3)], 'Color', [1 0.3 1], ...
      'LineStyle', '--', 'LineWidth', 1.5, 'Parent', H.issTf);
-text(pe(1), pe(2), pe(3), ' target port (illustrative)', 'Color', [1 0.5 1], 'FontSize', 8, 'Parent', H.issTf);
+text(pe(1), pe(2), pe(3), ' Docking Port', 'Color', [1 0.5 1], 'FontSize', 8, 'Parent', H.issTf);
 
 %% ===== Proximity view: reference ghost, chaser, torque arrows =====
 
-H.layer.reference = hggroup('Parent', axP);
+H.layer.reference = hggroup('Parent', H.sceneTf);
 H.refTf = hgtransform('Parent', H.layer.reference);
 H.refScale = hgtransform('Parent', H.refTf, 'Matrix', makehgtform('scale', kc));
 drawTriad(H.refScale, 7, {'', '', ''}, ':');
 
-H.layer.chaser = hggroup('Parent', axP);
+H.layer.chaser = hggroup('Parent', H.sceneTf);
 H.chsTf = hgtransform('Parent', H.layer.chaser);
 H.chsScale = hgtransform('Parent', H.chsTf, 'Matrix', makehgtform('scale', kc));
 
@@ -120,15 +123,18 @@ drawParts(Mx.chaser, H.layer.chaserMesh);
 drawTriad(H.layer.chaserMesh, 6, {'b_1', 'b_2', 'b_3'}, '-');
 
 %% ===== Proximity view: line of sight, docking axis, approach trace =====
-H.layer.los = hggroup('Parent', axP);
-H.los = line([0 0], [0 0], [0 0], 'Color', [0.8 0.8 0.8], 'LineStyle', ':', 'Parent', H.layer.los);
-H.dock = line([0 0], [0 0], [0 0], 'Color', [1 0.9 0.2], 'LineWidth', 1.5, 'Parent', H.layer.los);
-H.layer.trace = hggroup('Parent', axP);
+losGroup = hggroup('Parent', H.sceneTf);
+H.los = line([0 0], [0 0], [0 0], 'Color', [0.8 0.8 0.8], 'LineStyle', ':', 'Parent', losGroup);
+dockGroup = hggroup('Parent', H.chsTf);
+H.dock = line([0 max(V.range_m)+20], [0 0], [0 0], 'Color', [1 0.9 0.2], 'LineWidth', 1.5, 'Parent', dockGroup);
+H.layer.los = [losGroup, dockGroup];
+H.layer.trace = hggroup('Parent', H.sceneTf);
 H.trace = line(V.rho_O(1,1), V.rho_O(1,2), V.rho_O(1,3), 'Color', [1 0.6 0.2], 'Parent', H.layer.trace);
 H.probe_B = Mx.chaser_probe_B*kc;
 N = numel(V.t);
 H.line_idx = unique([round(linspace(1, N, 500)), N]);   % [-] samples drawn on the trace and arc lines
 H.axP = axP;
+H.fg = fg;
 
 %% ===== Proximity view: limits, camera, lights, HUD =====
 lo = min([V.rho_O; -60 -60 -60], [], 1) - 20;
@@ -137,6 +143,10 @@ axis(axP, 'equal');
 xlim(axP, [lo(1) hi(1)]);
 ylim(axP, [lo(2) hi(2)]);
 zlim(axP, [lo(3) hi(3)]);
+disp(lo)
+disp(hi)
+set(axP, 'XTickMode', 'manual', 'YTickMode', 'manual', 'ZTickMode', 'manual', ...
+    'PlotBoxAspectRatioMode', 'manual');
 axP.Clipping = 'off';
 styleAxes(axP, space, fg);
 xlabel(axP, 'o_1 [m]');
@@ -148,7 +158,7 @@ H.hud = text(axP, 0.01, 0.99, '', 'Units', 'normalized', 'VerticalAlignment', 't
              'Color', fg, 'FontSize', 9, 'FontName', 'FixedWidth', 'Interpreter', 'none');
 title(axP, sprintf('Proximity view, LVLH centred on the ISS (ISS mesh: %s)', meshLabel(Mx.iss_source)), ...
       'Color', fg, 'Interpreter', 'none');
-axP.UserData = struct('camera', '');
+axP.UserData = struct('camera', ''); % frame cache
 hold(axP, 'off');
 end
 

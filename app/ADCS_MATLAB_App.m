@@ -690,6 +690,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
 
             %% ===== Unlock the UI =====
             app.RunButton.Enable = 'on';
+            app.VisPlayButton.Enable = onOff(app, ~isempty(app.VisScene));
             drawnow;
         end
 
@@ -874,7 +875,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         % Output:
         %     Updates slider label in the 3D Scene
             
-            stopPlayback(app)
+            stopPlayback(app);
             showVisualTime(app, app.VisTimeSlider.Value);
         end
 
@@ -1196,6 +1197,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                 app.VisTimeSlider.Enable = 'off';
                 app.VisPlayButton.Enable = 'off';
                 clearVisual(app);
+                return;
             end
             names = cell(1, K);
             for k = 1:K
@@ -1211,7 +1213,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         function rebuildVisual(app, keepTime)
             stopPlayback(app);
             k = app.VisCtrlDropDown.Value;
-            if ~isnumeric(k) || isempty(k) || k < 1 || k> numel(app.Results)
+            if ~isnumeric(k) || isempty(k) || k < 1 || k > numel(app.Results)
                 return;
             end
             t_keep = 0;
@@ -1317,7 +1319,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.VisTPlay = app.VisTPlay + app.VisSpeedDropDown.Value*dtw;
             [m, app.VisTPlay, ended] = visualSampleIndex(app.VisTraj.t, app.VisTPlay, app.VisLoopCheckBox.Value);
             app.VisIndex = m;
-            updateScene3D(app.VisScene, app.VisTraj, m, struct('camera', visualCamera(app)));
+            updateScene3D(app.VisScene, app.VisTraj, m, struct('camera', visualCamera(app), 'force', false));
             app.VisTimeSlider.Value = app.VisTPlay;
             app.VisTimeLabel.Text = sprintf('t = %.1f s (sample %d of %d)', app.VisTraj.t(m), m, numel(app.VisTraj.t));
             if ended
@@ -1339,7 +1341,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             for i = 1:size(app.VisLayers, 1)
                 name = app.VisLayers{i, 1};
                 if isfield(app.VisScene.layer, name)
-                    app.VisScene.layer.(name).Visible = onOff(app, app.visLayerCheckBoxes.(name).Value);
+                    set(app.VisScene.layer.(name), 'Visible', onOff(app, app.visLayerCheckBoxes.(name).Value));
                 end
             end
         end
@@ -1831,6 +1833,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.Position = [60 60 1400 860];
             app.UIFigure.Name = 'ADCS-MATLAB-App — LEO Chaser / ISS Rendezvous';
+            app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @UIFigureCloseRequest, true);
 
             app.MainGrid = uigridlayout(app.UIFigure, [2 1]);
             app.MainGrid.RowHeight = {'1x', 24};
@@ -2350,6 +2353,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.MetricsTable.RowName = {};
         end
 
+        
         function createVisualTab(app)
             %% ===== Layout =====
             g = uigridlayout(app.VisualTab, [2,1]);
@@ -2447,7 +2451,11 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             addLabel(app, dispOptg, 7, 1, 'Show', '');
             app.visLayerCheckBoxes = struct();
             for i = 1:nL
-                cbox = uicheckbox(dispOptg, "Text", app.VisLayers{i, 2});
+                if i==nL % chaser layer
+                    cbox = uicheckbox(dispOptg, "Text", app.VisLayers{i, 2}, "Value", 1);
+                else
+                    cbox = uicheckbox(dispOptg, "Text", app.VisLayers{i, 2}, "Value", 0);
+                end
                 cbox.Layout.Row = 7 + i;
                 cbox.Layout.Column = 1;
                 cbox.ValueChangedFcn = createCallbackFcn(app, @VisLayerChanged, true);
