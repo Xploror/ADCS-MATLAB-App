@@ -1319,7 +1319,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.VisTPlay = app.VisTPlay + app.VisSpeedDropDown.Value*dtw;
             [m, app.VisTPlay, ended] = visualSampleIndex(app.VisTraj.t, app.VisTPlay, app.VisLoopCheckBox.Value);
             app.VisIndex = m;
-            updateScene3D(app.VisScene, app.VisTraj, m, struct('camera', visualCamera(app), 'force', false));
+            updateScene3D(app.VisScene, app.VisTraj, m, struct('camera', visualCamera(app), 'force', false)); %Default force = false
             app.VisTimeSlider.Value = app.VisTPlay;
             app.VisTimeLabel.Text = sprintf('t = %.1f s (sample %d of %d)', app.VisTraj.t(m), m, numel(app.VisTraj.t));
             if ended

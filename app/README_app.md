@@ -92,7 +92,9 @@ This tab replays one stored result in 3D. It is rebuilt after every run and when
 
 The left axes show the global view in km: the Earth, the ISS orbit with the travelled arc, and the chaser orbit (within 0.5 km of the ISS orbit). The right axes show the LVLH proximity view in metres. The HUD shows time, range, true attitude and pointing errors, and torque and momentum saturation flags.
 
-A new run, a controller change or closing the window stops playback. `delete(app)` and the window's close request stop and delete the timer.
+The right axes show the proximity view, clipping the follow-camera views to this panel only. Note that slower graphics hardware can drop frames, and playback.
+
+> A new run, a controller change or closing the window stops playback. `delete(app)` and the window's close request stop and delete the timer.
 
 ### Status bar
 The bottom line shows the latest message: loads, saves, validation, clamped values, J_true warnings and errors. Its tooltip holds the full text.

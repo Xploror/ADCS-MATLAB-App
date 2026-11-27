@@ -29,7 +29,10 @@ fig = uifigure('Visible', visible, 'Position', [100 100 1200 600]);
 cleanup = onCleanup(@() delete(fig));
 g = uigridlayout(fig, [1 2]);
 axG = uiaxes(g);
-axP = uiaxes(g);
+
+p = uipanel(g, 'BorderType','none', 'BackgroundColor', [0.03 0.03 0.08]); % follow cam is clipped here
+pp = uigridlayout(p, [1,1], 'Padding', zeros(1,4), 'BackgroundColor', [0.03 0.03 0.08]);
+axP = uiaxes(pp);
 H = drawScene3D(axG, axP, V, Mx, struct('chaser_scale', 5));
 
 %% ===== Step through the run =====

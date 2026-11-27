@@ -49,7 +49,7 @@ models/     build_ADCS_model.m (generates .slx/.sldd), pushParamsToDictionary.m,
 src/        utils, reference, dynamics, disturbances, controllers, sim, analysis, config_io, visuals
 assets/     README_assets.md (insert external models for spacecraft here!)
 config/     initDefaults.m, gainMetadata.m, listScenarios.m, gains/, scenarios/, saved/
-tests/      run_all_tests.m, test_*.m, run_all_scenarios_smoketest.m, check_model_wiring_repair.m, check_visual_playback.m (opt-in)
+tests/      run_all_tests.m, test_*.m, run_all_scenarios_smoketest.m, test_model_wiring_repair.m, test_visual_playback.m and test_app_3d_view.m (opt-in)
 examples/   run_example_comparison.m
 docs/       DESIGN_SPEC.md (interface contract), ADCS_Technical_Report.pdf
 ```
@@ -62,7 +62,7 @@ docs/       DESIGN_SPEC.md (interface contract), ADCS_Technical_Report.pdf
   - `run_all_tests` gives **9/9 PASS**, including `test_simulink_vs_reference` (Simulink matches the reference engine to about 1e-11°);
   - all 7 scenarios × 3 controllers give identical verdicts on both engines: 20/21 pass, and the single fail (PD on the persistent-excitation scan) is a genuine limitation of PD.
 - The numerical library and the reference engine are also verified in GNU Octave 8.4.
-- he GUI runs on the developer's machine. The 3D view (v.1.2.0) geometry initial smoke-tests are cleared! Please report any GUI issue.
+- The GUI runs on the developer's machine. The 3D view (v.1.2.0) geometry initial smoke-tests are cleared! Please report any GUI issue.
 - `tests/check_model_wiring_repair.m` is opt-in. It rebuilds the model with a deliberately injected wiring fault to exercise the builder's self-repair.
 
 ## Documentation
