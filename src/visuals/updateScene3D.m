@@ -8,6 +8,8 @@ function updateScene3D(H, V, m, opts)
 %   opts - struct (optional); missing fields take defaults:
 %          camera - char, 'iss' | 'chaser' | 'docking' (proximity camera)      [-]
 %          draw   - logical [1], call drawnow limitrate at the end           [-]
+%          force  - logical [1], redraw every object or optimally only
+%          changed visibly since last frame.   [-]
 % Outputs:
 %   Graphics objects H is just updated
 %
@@ -67,9 +69,6 @@ if force || norm(rho - UD.rho) > 0.25
     set(H.los, 'XData', [rho(1) 0], 'YData', [rho(2) 0], 'ZData', [rho(3) 0]);
     UD.rho = rho;
 end
-% tip = rho + M*H.probe_B;
-% de = tip + M(:,1)*V.range_m(m);
-% set(H.dock, 'XData', [tip(1) de(1)], 'YData', [tip(2) de(2)], 'ZData', [tip(3) de(3)]);
 k = [H.line_idx(H.line_idx < m), m];                % [-] decimated samples up to m
 newk = force || numel(k) ~= UD.nk;
 if newk
@@ -99,11 +98,12 @@ up = [0 0 -1];                                       % zenith (-o3) up
 prev = UD.camera;
 newcam = force || ~strcmp(prev, cam);
 
+scale = norm(H.probe_B)/2.4;
 switch cam
     case 'chaser'
         S = [eye(3) -rho; 0 0 0 1];                 % chaser at the origin
         if newcam
-            d = 30*norm(H.probe_B)/2.4;                 % [m] follows the chaser display size
+            d = 30*scale;                 % [m] follows the chaser display size
             set(ax, 'CameraTarget', zeros(1,3), 'CameraPosition', d*[-0.55 -0.75 -0.37], ...
                 'CameraUpVector', up, 'CameraViewAngle', 30);
         end
@@ -118,7 +118,8 @@ switch cam
         R = [b1' cross(z, b1') z];  % docking frame DCM (transpose of Rotation matrix)
         S = [R' -R'*rho; 0 0 0 1];  % chaser at origin and scene axis in docking axis
         if newcam
-            set(ax, 'CameraTarget', [40 0 0], 'CameraPosition', [-18 0 4], ...
+            d = scale;
+            set(ax, 'CameraTarget', [40 0 0], 'CameraPosition', d*[-19 0 4.5], ...
                 'CameraUpVector', [0 0 1], 'CameraViewAngle', 35);
         end
     otherwise
@@ -134,9 +135,11 @@ if newcam || ~strcmp(cam, 'iss') % Transform scene only when detected cam change
 end
 if newcam
     if strcmp(cam, 'iss')
-        set(ax, 'XColor', H.fg, 'YColor', H.fg, 'ZColor', H.fg, 'XGrid', 'on', 'YGrid', 'on', 'ZGrid', 'on');
+        set(ax, 'Color', H.bg, 'XColor', H.fg, 'YColor', H.fg, 'ZColor', H.fg, 'XGrid', 'on', 'YGrid', 'on', 'ZGrid', 'on', ...
+            'Projection', 'orthographic', 'PositionConstraint', 'outerposition');
     else
-        set(ax, 'XColor', 'none', 'YColor', 'none', 'ZColor', 'none', 'XGrid', 'off', 'YGrid', 'off', 'ZGrid', 'off');
+        set(ax, 'Color', H.bg, 'XColor', 'none', 'YColor', 'none', 'ZColor', 'none', 'XGrid', 'off', 'YGrid', 'off', 'ZGrid', 'off', ...
+            'Projection', 'perspective', 'PositionConstraint', 'innerposition');
     end
 end
 UD.camera = cam;

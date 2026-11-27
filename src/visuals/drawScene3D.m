@@ -16,7 +16,7 @@ function H = drawScene3D(axG, axP, V, Mx, opts)
 %          H.layer.orbits, .sun, .lvlh, .iss, .chaser, .reference, .los, .torque, .trace;
 %          (.los holds two groups: line of sight and body-fixed docking axis ray)
 %          H.line_idx (at most about 500 samples drawn on the growing lines) and H.axP
-%          H.fg (axis color) and H.sceneTf (root transform of proximity scene)
+%          H.fg (axis color), H.bg (background color) and H.sceneTf (root transform of proximity scene)
 %
 % Units: the global view is drawn in km, the proximity view in metres.
 % The proximity camera keeps the zenith (-o3) up.
@@ -68,7 +68,7 @@ xlabel(axG, 'x_{ECI} [km]');
 ylabel(axG, 'y_{ECI} [km]');
 zlabel(axG, 'z_{ECI} [km]');
 view(axG, [-40 25]);
-title(axG, sprintf('Orbit view (chaser orbit lies within %.1f km of the ISS orbit)', max(V.range_m)/1e3), ...
+title(axG, sprintf('Orbit view (chaser within %.1f km of the ISS orbit)', max(V.range_m)/1e3), ...
       'Color', fg, 'Interpreter', 'none');
 hold(axG, 'off');
 
@@ -135,6 +135,7 @@ N = numel(V.t);
 H.line_idx = unique([round(linspace(1, N, 500)), N]);   % [-] samples drawn on the trace and arc lines
 H.axP = axP;
 H.fg = fg;
+H.bg = space;
 
 %% ===== Proximity view: limits, camera, lights, HUD =====
 lo = min([V.rho_O; -60 -60 -60], [], 1) - 20;
@@ -143,18 +144,16 @@ axis(axP, 'equal');
 xlim(axP, [lo(1) hi(1)]);
 ylim(axP, [lo(2) hi(2)]);
 zlim(axP, [lo(3) hi(3)]);
-disp(lo)
-disp(hi)
 set(axP, 'XTickMode', 'manual', 'YTickMode', 'manual', 'ZTickMode', 'manual', ...
     'PlotBoxAspectRatioMode', 'manual');
-axP.Clipping = 'off';
+axP.Clipping = 'on';
 styleAxes(axP, space, fg);
 xlabel(axP, 'o_1 [m]');
 ylabel(axP, 'o_2 [m]');
 zlabel(axP, 'o_3 [m]');
 light(axP, 'Position', [0.3 0.2 -1], 'Style', 'infinite');
 light(axP, 'Position', [-0.5 -0.8 0.4], 'Style', 'infinite', 'Color', [0.4 0.4 0.45]);
-H.hud = text(axP, 0.01, 0.99, '', 'Units', 'normalized', 'VerticalAlignment', 'top', ...
+H.hud = text(axP, 0.01, 0.01, '', 'Units', 'normalized', 'VerticalAlignment', 'bottom', ...
              'Color', fg, 'FontSize', 9, 'FontName', 'FixedWidth', 'Interpreter', 'none');
 title(axP, sprintf('Proximity view, LVLH centred on the ISS (ISS mesh: %s)', meshLabel(Mx.iss_source)), ...
       'Color', fg, 'Interpreter', 'none');
