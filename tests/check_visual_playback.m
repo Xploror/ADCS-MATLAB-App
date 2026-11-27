@@ -20,7 +20,7 @@ end
 
 %% ===== Scene =====
 cfg = scn_nominal();
-cfg.scenario.t_final_s = 60;                          % [s] short run
+cfg.scenario.t_final_s = 200;                          % [s] this run is used for checks and frame rate
 [SC, RG, AG, BG] = buildSimParams(cfg);
 res = simulateADCS_ref(SC, RG, AG, BG, 2);
 V = buildVisualTrajectory(res, struct('mag_k', 10));
@@ -42,12 +42,21 @@ for k = 1:numel(idx)
 end
 if visible
     drawnow;
-    fps = numel(idx)/toc(t0);
-    fprintf('check_visual_playback: %.1f frames per second (drawnow limitrate caps at 20)\n', fps);
+    fprintf('check_visual_playback: %.1f frames per second with full redraws (jumps between distant samples)\n', numel(idx)/toc(t0));
+    for cam = {'iss', 'chaser', 'docking'}
+        ip = 1:10:N;
+        t0 = tic;
+        for k = 1:numel(ip)
+            updateScene3D(H, V, ip{k}, struct('camera', cam{1}, 'force', false, 'draw', false));
+            drawnow;
+        end
+        fprintf('check_visual_playback: %.1f rendered frames per second during playback (camera %s)\n', numel(ip)/toc(t0), cam{1});
+    end
 end
 
 %% ===== Transforms and arrows equal the library geometry =====
 m = idx(end);
+updateScene3D(H, V, m, struct('draw', false));
 T = H.chsTf.Matrix;
 assert(norm(T(1:3,1:3) - V.M_BO_disp(:,:,m)) < 1e-12 && norm(T(1:3,4) - V.rho_O(m,:).') < 1e-9, ...
        'chaser transform does not match M_BO_disp / rho_O');
