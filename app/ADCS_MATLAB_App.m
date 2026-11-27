@@ -2413,9 +2413,11 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.VisGlobalAxes = uiaxes(vg);
             app.VisGlobalAxes.Layout.Row = 1;
             app.VisGlobalAxes.Layout.Column = 1;
-            app.VisProxAxes = uiaxes(vg);
-            app.VisProxAxes.Layout.Row = 1;
-            app.VisProxAxes.Layout.Column = 2;
+            pp = uipanel(vg, 'BorderType', 'none', 'BackgroundColor', [0.03 0.03 0.08]);
+            pp.Layout.Row = 1;
+            pp.Layout.Column = 2;
+            pg = uigridlayout(pp, [1,1], 'Padding', zeros(1,4), 'BackgroundColor', [0.03 0.03 0.08]);
+            app.VisProxAxes = uiaxes(pg);
             % title(app.VisGlobalAxes, 'ECI view');
             % title(app.VisProxAxes, 'ISS-centered LVLH view');
             % grid(app.VisGlobalAxes, 'on');
