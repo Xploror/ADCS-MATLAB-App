@@ -24,11 +24,15 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         % ----- Figure-level -----
         UIFigure                matlab.ui.Figure                 % main application window 
         MainGrid                matlab.ui.container.GridLayout   % root grid: tab group + status bar 
-        TabGroup                matlab.ui.container.TabGroup     % top-level tab group (4 tabs) 
+        TabGroup                matlab.ui.container.TabGroup     % top-level tab group (5 tabs) 
+        
+        % Tab names
         ScenarioTab             matlab.ui.container.Tab          % tab 1: scenario and initial conditions 
         GainsTab                matlab.ui.container.Tab          % tab 2: controller gains 
         RunTab                  matlab.ui.container.Tab          % tab 3: run controls and log 
         ResultsTab              matlab.ui.container.Tab          % tab 4: plots and metrics 
+        VisualTab               matlab.ui.container.Tab          % tab 5: 3D View 
+        
         StatusLabel             matlab.ui.control.Label          % status bar text at the bottom 
 
         % ----- Tab 1: layout -----
@@ -119,6 +123,20 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         ExportCSVButton         matlab.ui.control.Button         % exports the metrics table to CSV 
         ResultAxes                                               % 1x6 UIAxes, plots in the order of PlotQuantities 
         MetricsTable            matlab.ui.control.Table          % metrics table from metricsTable() [mixed]
+
+        % ----- Tab 5: 3D View -----
+        VisCtrlDropDown         matlab.ui.control.DropDown
+        VisTimeSlider           matlab.ui.control.Slider         % playback time [s]
+        VisTimeLabel            matlab.ui.control.Label          % current playback time and sample index
+        VisGlobalAxes           matlab.ui.control.UIAxes         % ECI display [km]
+        VisProxAxes             matlab.ui.control.UIAxes         % ISS-centered LVLH display [m]
+        VisPlayButton           matlab.ui.control.Button         % play/pause 3D playback
+        VisSpeedDropDown        matlab.ui.control.DropDown       % playback speed factor sigma
+        VisLoopCheckBox         matlab.ui.control.CheckBox       % wrap playback
+        VisMagDropDown          matlab.ui.control.DropDown       % attitude-error display magnification k
+        VisCameraDropDown       matlab.ui.control.DropDown       % proximity camera preset: 'iss' | 'chaser' | 'docking'
+        VisChaserSizeDropDown   matlab.ui.control.DropDown       % chaser display enlargement
+        visLayerCheckBoxes                                       % struct of matlab.ui.control.CheckBox, per drawScene3D layer group 
     end
 
     %% ===== Private state properties =====
@@ -131,6 +149,13 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         GainWidgets     % struct: GainWidgets.<ctrl>.<field> = 1xn uitable handle 
         ProjectRoot     % char, absolute path of the project root folder 
         WriteNotes = '' % char, notes from the last writeCfgToWidgets (clamped values etc.) 
+        VisTraj         % struct, visual trajectory from buildVisualTrajectory
+        VisScene        % struct, graphic handle from drawScene3D (empty means no scene)
+        VisMeshes       % struct, spacecraft meshes from spacecraftMeshes (built once in meters)
+        VisIndex = 1    % double, sample visual index currently shown in 3D View tab.
+        VisTimer        % timer, fixed-spacing playback clock
+        VisTPlay = 0    % double, current playback time [s]
+        VisTick         % uint64, tic id of previous playback tick
     end
 
     %% ===== Private constants =====
@@ -142,7 +167,10 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         PlotQuantities = {'att_err', 'w_e', 'tau_rw', 'h_w', 'qnorm', 'theta_hat'} % plotResultsOnAxes quantities 
         PlotTitles     = {'Attitude error [deg]', 'Rate error |ω_e| [deg/s]', ...
                           'Wheel torque |τ| [N·m]', 'Wheel momentum max|h| [N·m·s]', ...
-                          'Quaternion norm deviation ', 'Adaptive θ_est/θ_true '} % axes titles 
+                          'Quaternion norm deviation ', 'Adaptive θ_est/θ_true '} % axes titles
+        VisLayers      = {'orbits', 'Orbits'; 'sun', 'Sun direction'; 'lvlh', 'LVLH axes'; ...
+                           'reference', 'Reference axes'; 'los', 'Line of sight, docking axis'; ...
+                           'torque', 'Wheel torque arrows'; 'trace', 'Approach path'; 'chaserMesh', 'Chaser'} % drawScene3D layer fields
     end
 
     %% ===== Callbacks: Scenario tab =====
@@ -167,7 +195,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             %% ===== Data-driven dropdowns =====
             try
                 list = listScenarios();
-                setDropDownItems(app, app.PresetDropDown, list(:, 2).', list(:, 1).');
+                setDropDownItems(app, app.PresetDropDown, list(:, 2)', list(:, 1)');
             catch ME
                 setStatus(app, ['listScenarios() failed: ' ME.message]);
             end
@@ -193,6 +221,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             writeCfgToWidgets(app);
             refreshJTrue(app);
             refreshResults(app);
+            refreshVisual(app);
             appendLog(app, 'App started with initDefaults().');
             setStatus(app, 'Ready. Configure the scenario, then press Run on the Run tab.');
         end
@@ -579,7 +608,9 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         %   (none) - app.Results, app.Metrics, app.PassFlags, app.RunCfg set
 
             %% ===== Lock the UI =====
+            stopPlayback(app);
             app.RunButton.Enable = 'off';
+            app.VisPlayButton.Enable = 'off';
             drawnow;
             dlg = [];
 
@@ -638,6 +669,8 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                     updateResultsSelector(app);
                     dlg.Message = 'Plotting ...';
                     refreshResults(app);
+                    dlg.Message = 'Manifesting 3D view ...';
+                    refreshVisual(app);
                     close(dlg);
                     app.TabGroup.SelectedTab = app.ResultsTab;
                     setStatus(app, sprintf('Run finished: %d result(s), %d passed.', K, sum(passFlags)));
@@ -657,6 +690,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
 
             %% ===== Unlock the UI =====
             app.RunButton.Enable = 'on';
+            app.VisPlayButton.Enable = onOff(app, ~isempty(app.VisScene));
             drawnow;
         end
 
@@ -774,6 +808,92 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
 
     end
 
+    %% ===== Callbacks: 3D View tab =====
+    methods (Access = private)
+
+        function VisCtrlDropDownValChanged(app, event)
+        % Shows a different stored controller result in 3D View
+        % 
+        % Inputs:
+        %     app - this app instance
+        %     event - matlab.ui.eventdata.ValueChangedData
+        % Output:
+        %     Rebuilds the 3D Scene
+            
+            % stopPlayback(app);
+            rebuildVisual(app, false);
+        end
+
+        function VisPlayButtonPushed(app, event)
+            if ~isempty(app.VisTimer) && isvalid(app.VisTimer) && strcmp(app.VisTimer.Running, 'on')
+                stopPlayback(app);
+            else
+                startPlayback(app);
+            end
+        end
+
+        function VisDisplayOptionChanged(app, event)
+            wasRunning = ~isempty(app.VisTimer) && isvalid(app.VisTimer) && strcmp(app.VisTimer.Running, 'on');
+            % stopPlayback(app);
+            rebuildVisual(app, true);
+            if wasRunning
+                startPlayback(app);
+            end
+        end
+
+        function VisChaserSizeChanged(app, event)
+            if isempty(app.VisScene) || isempty(app.VisTraj)
+                return;
+            end
+            kc = app.VisChaserSizeDropDown.Value;
+            app.VisScene.chsScale.Matrix = makehgtform('scale', kc);
+            app.VisScene.refScale.Matrix = makehgtform('scale', kc);
+            app.VisScene.probe_B = app.VisMeshes.chaser_probe_B*kc;
+            showVisualTime(app, app.VisTraj.t(app.VisIndex));
+        end
+
+        function VisCameraChanged(app, event)
+            if ~isempty(app.VisTraj)
+                showVisualTime(app, app.VisTraj.t(app.VisIndex));
+            end
+        end
+
+        function VisLayerChanged(app, event)
+            applyLayers(app);
+        end
+
+        function UIFigureCloseRequest(app, event)
+            delete(app);
+        end
+
+        function VisTimeSliderValueChanged(app, event)
+        % Shows the sample nearest to the settled slider position
+        % 
+        % Inputs:
+        %     app - this app instance
+        %     event - matlab.ui.eventdata.ValueChangedData
+        % Output:
+        %     Updates slider label in the 3D Scene
+            
+            stopPlayback(app);
+            showVisualTime(app, app.VisTimeSlider.Value);
+        end
+
+        function VisTimeSliderValueChanging(app, event)
+        % Shows the sample nearest to the still dragging slider position
+        % 
+        % Inputs:
+        %     app - this app instance
+        %     event - matlab.ui.eventdata.ValueChangedData, event.Value [s]
+        % Output:
+        %     Updates slider label in the 3D Scene
+            
+            stopPlayback(app);
+            showVisualTime(app, event.Value);
+        end
+    
+    end
+
     %% ===== Widget <-> cfg mapping (single source of truth) =====
     methods (Access = private)
 
@@ -790,14 +910,14 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             sc  = cfg.scenario;
 
             %% ===== Attitude error =====
-            ax = [app.AxisEditFields.Value].';                      %  raw axis
+            ax = [app.AxisEditFields.Value]';                      %  raw axis
             nrm = norm(ax);
             if nrm > 0
                 ax = ax / nrm;                                      %  normalised axis
             end
             sc.att_err_axis      = ax;                              % [3x1] 
             sc.att_err_angle_deg = app.AngleEditField.Value;        % [deg]
-            sc.rate_err0_degps   = [app.RateEditFields.Value].';    % [3x1] [deg/s]
+            sc.rate_err0_degps   = [app.RateEditFields.Value]';    % [3x1] [deg/s]
 
             %% ===== Reference / orbit =====
             sc.target_mode    = app.TargetModeDropDown.Value;       %  0|1|2|3
@@ -808,8 +928,8 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             sc.T_close_s      = app.TcloseEditField.Value;          % [s]
             sc.y_off0_m       = app.Yoff0EditField.Value;           % [m]
             sc.z_off0_m       = app.Zoff0EditField.Value;           % [m]
-            sc.scan_amp_deg    = [app.ScanAmpEditFields.Value].';  % [3x1] [deg]
-            sc.scan_freq_radps = [app.ScanFreqEditFields.Value].'; % [3x1] [rad/s]
+            sc.scan_amp_deg    = [app.ScanAmpEditFields.Value]';  % [3x1] [deg]
+            sc.scan_freq_radps = [app.ScanFreqEditFields.Value]'; % [3x1] [rad/s]
 
             %% ===== Inertia =====
             sc.J_nom      = readJnomFromTable(app);                 % [3x3] [kg*m^2]
@@ -1008,7 +1128,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             J = sc.J_nom;
             if any(~isfinite(J(:)))
                 m{end+1} = 'J_nom contains non-finite entries.';
-            elseif min(eig(0.5*(J + J.'))) <= 0
+            elseif min(eig(0.5*(J + J'))) <= 0
                 m{end+1} = 'J_nom must be positive definite.';
             end
 
@@ -1025,7 +1145,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                 for i = 1:numel(flds)
                     v = g.(flds{i});
                     if isnumeric(v) && any(~isfinite(v(:)))
-                        m{end+1} = sprintf('Gain %s.%s contains non-finite values.', ctrl, flds{i}); %#ok<AGROW>
+                        m{end+1} = sprintf('Gain %s.%s contains non-finite values.', ctrl, flds{i});
                     end
                 end
             end
@@ -1044,13 +1164,13 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                 ctrl = smcCtrls{c};
                 g = app.Cfg.gains.(ctrl);
                 if isfield(g, 'phi') && any(~(double(g.phi(:)) > 0))
-                    m{end+1} = sprintf('Gain %s.phi must be > 0.', ctrl); %#ok<AGROW>
+                    m{end+1} = sprintf('Gain %s.phi must be > 0.', ctrl);
                 end
                 nonNeg = {'K_diag', 'eta', 'Gamma_diag'};        % gain fields that must be >= 0 
                 for i = 1:numel(nonNeg)
                     f = nonNeg{i};
                     if isfield(g, f) && any(~(double(g.(f)(:)) >= 0))
-                        m{end+1} = sprintf('Gain %s.%s must be >= 0.', ctrl, f); %#ok<AGROW>
+                        m{end+1} = sprintf('Gain %s.%s must be >= 0.', ctrl, f);
                     end
                 end
             end
@@ -1062,6 +1182,168 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             %% ===== Result =====
             ok  = isempty(m);
             msg = strjoin(m, newline);
+        end
+
+    end
+
+    %% ===== 3D View helpers =====
+    methods (Access = private)
+        
+        function refreshVisual(app)
+            K = numel(app.Results);
+            if K == 0
+                setDropDownItems(app, app.VisCtrlDropDown, {'(no stored results)'}, 0);
+                app.VisCtrlDropDown.Enable = 'off';
+                app.VisTimeSlider.Enable = 'off';
+                app.VisPlayButton.Enable = 'off';
+                clearVisual(app);
+                return;
+            end
+            names = cell(1, K);
+            for k = 1:K
+                names{k} = app.Results(k).ctrl_name;
+            end
+            setDropDownItems(app, app.VisCtrlDropDown, names, 1:K);
+            app.VisCtrlDropDown.Enable = 'on';
+            app.VisTimeSlider.Enable = 'on';
+            app.VisPlayButton.Enable = 'on';
+            rebuildVisual(app, false);
+        end
+
+        function rebuildVisual(app, keepTime)
+            stopPlayback(app);
+            k = app.VisCtrlDropDown.Value;
+            if ~isnumeric(k) || isempty(k) || k < 1 || k > numel(app.Results)
+                return;
+            end
+            t_keep = 0;
+            if keepTime && ~isempty(app.VisTraj)
+                t_keep = app.VisTraj.t(app.VisIndex);
+            end
+            try
+                if isempty(app.VisMeshes)
+                    app.VisMeshes = spacecraftMeshes();
+                end
+                app.VisTraj = buildVisualTrajectory(app.Results(k), visualOptions(app));
+                app.VisScene = drawScene3D(app.VisGlobalAxes, app.VisProxAxes, app.VisTraj, app.VisMeshes, visualOptions(app));
+                t = app.VisTraj.t;
+                app.VisTimeSlider.Limits = [t(1) max(t(end), t(1) + max(eps(t(1)), 1e-6))]; %Handles single element app.VisTraj.t
+                applyLayers(app);
+                showVisualTime(app, t_keep);
+            catch ME
+                app.VisTraj = [];
+                app.VisScene = [];
+                app.VisIndex = 1;
+                setStatus(app, ['3D View problem: ' ME.message]);
+            end
+        end
+
+        function showVisualTime(app, t_play)
+            if isempty(app.VisScene) || isempty(app.VisTraj)
+                return;
+            end
+            [m, t_play] = visualSampleIndex(app.VisTraj.t, t_play, false);
+            app.VisIndex = m;
+            app.VisTPlay = t_play;
+            updateScene3D(app.VisScene, app.VisTraj, m, struct('camera', visualCamera(app)));
+            app.VisTimeSlider.Value = t_play;
+            app.VisTimeLabel.Text = sprintf('t = %.1f s (sample %d of %d)', app.VisTraj.t(m), m, numel(app.VisTraj.t));
+        end
+            
+        function clearVisual(app)
+            stopPlayback(app);
+            app.VisScene = [];
+            app.VisTraj = [];
+            app.VisIndex = 1;
+            axs = [app.VisGlobalAxes, app.VisProxAxes];
+            for i=1:numel(axs)
+                cla(axs(i));
+                h = text(axs(i), 0.5, 0.5, 'Run a simulation for the 3D View', 'Units','normalized', 'HorizontalAlignment','center');
+                h.Color = [0.3, 0.3, 0.3];
+            end
+            app.VisTimeLabel.Text = 't = -';
+        end
+
+        function opts = visualOptions(app)
+            opts = struct('mag_k', app.VisMagDropDown.Value, 'chaser_scale', app.VisChaserSizeDropDown.Value);
+        end
+
+        function cam = visualCamera(app)
+            cam = app.VisCameraDropDown.Value;
+        end
+
+        function startPlayback(app)
+            if isempty(app.VisScene) || isempty(app.VisTraj)
+                return;
+            end
+            if isempty(app.VisTimer) || ~isvalid(app.VisTimer)
+                app.VisTimer = timer('ExecutionMode', 'fixedSpacing', 'Period', 0.05, 'BusyMode', 'drop', ...
+                    'Name', 'ADCS3DPlayback', 'TimerFcn', @(~,~) visualTick(app), ...
+                    'ErrorFcn', @(~,~) stopPlayback(app));
+            end
+            t = app.VisTraj.t;
+            app.VisTPlay = t(app.VisIndex);
+            if app.VisIndex >= numel(t) && ~app.VisLoopCheckBox.Value
+                app.VisTPlay = t(1);
+            end
+            app.VisTick = tic;
+            app.VisPlayButton.Text = 'Pause';
+            start(app.VisTimer);
+        end
+
+        function stopPlayback(app)
+            if ~isvalid(app)
+                return;
+            end
+            if ~isempty(app.VisTimer) && isvalid(app.VisTimer) && strcmp(app.VisTimer.Running, 'on')
+                stop(app.VisTimer);
+            end
+            if ~isempty(app.VisPlayButton) && isvalid(app.VisPlayButton)
+                app.VisPlayButton.Text = 'Play';
+            end
+        end
+
+        function visualTick(app)
+            % Timer callback that advances playback time by sigma*wall time
+            % 
+            % Input:
+            %     app - this app instance
+            % Output:
+            %     Updated VisTPlay, VisIndex, scene, slider and label
+
+            if ~isvalid(app) || isempty(app.VisScene) || isempty(app.VisTraj)
+                return;
+            end
+            dtw = toc(app.VisTick);
+            app.VisTick = tic;
+            app.VisTPlay = app.VisTPlay + app.VisSpeedDropDown.Value*dtw;
+            [m, app.VisTPlay, ended] = visualSampleIndex(app.VisTraj.t, app.VisTPlay, app.VisLoopCheckBox.Value);
+            app.VisIndex = m;
+            updateScene3D(app.VisScene, app.VisTraj, m, struct('camera', visualCamera(app), 'force', false)); %Default force = false
+            app.VisTimeSlider.Value = app.VisTPlay;
+            app.VisTimeLabel.Text = sprintf('t = %.1f s (sample %d of %d)', app.VisTraj.t(m), m, numel(app.VisTraj.t));
+            if ended
+                stopPlayback(app);
+            end
+        end
+
+        function applyLayers(app)
+            % Set visibility of drawScene3D layers based on the check boxes
+            % 
+            % Inputs:
+            %     app - this app instance
+            % Output:
+            %     Update VisScene layer visibility property
+
+            if isempty(app.VisScene)
+                return;
+            end
+            for i = 1:size(app.VisLayers, 1)
+                name = app.VisLayers{i, 1};
+                if isfield(app.VisScene.layer, name)
+                    set(app.VisScene.layer.(name), 'Visible', onOff(app, app.visLayerCheckBoxes.(name).Value));
+                end
+            end
         end
 
     end
@@ -1082,7 +1364,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                 D = cell2mat(D);
             end
             D = double(D);
-            J = 0.5 * (D + D.');
+            J = 0.5 * (D + D');
         end
 
         function refreshJTrue(app)
@@ -1144,7 +1426,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                 end
 
                 %% ===== Fit the value to the table width (pad or truncate) =====
-                v  = double(g.(f)(:)).';
+                v  = double(g.(f)(:))';
                 vv = zeros(1, n);
                 m  = min(n, numel(v));
                 vv(1:m) = v(1:m);
@@ -1411,7 +1693,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         end
 
         function setDropDownItems(app, dd, items, data)
-        %SETDROPDOWNITEMS Replace the Items and ItemsData of a dropdown safely.
+        % Replace the Items and ItemsData of a dropdown safely.
         %
         % Inputs:
         %   app   - ADCS_MATLAB_App, this app instance                      
@@ -1551,6 +1833,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.Position = [60 60 1400 860];
             app.UIFigure.Name = 'ADCS-MATLAB-App — LEO Chaser / ISS Rendezvous';
+            app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @UIFigureCloseRequest, true);
 
             app.MainGrid = uigridlayout(app.UIFigure, [2 1]);
             app.MainGrid.RowHeight = {'1x', 24};
@@ -1566,6 +1849,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.GainsTab    = uitab(app.TabGroup, 'Title', 'Controller Gains');
             app.RunTab      = uitab(app.TabGroup, 'Title', 'Run');
             app.ResultsTab  = uitab(app.TabGroup, 'Title', 'Results');
+            app.VisualTab   = uitab(app.TabGroup, 'Title', '3D View');
 
             %% ===== Status bar =====
             app.StatusLabel = uilabel(app.MainGrid, 'Text', 'Starting ...');
@@ -1579,6 +1863,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             createGainsTab(app);
             createRunTab(app);
             createResultsTab(app);
+            createVisualTab(app);
 
             app.UIFigure.Visible = 'on';
         end
@@ -1791,7 +2076,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.SettleThreshEditField = addNumericRow(app, sg, 3, 'Settle threshold [deg]', ...
                 'Settling time = first t after which the attitude error stays below this value', [0 Inf], 'off');
         end
-
+        
         function createGainsTab(app)
         %CREATEGAINSTAB Build tab 2: nested sub-tabs generated from gainMetadata().
         %
@@ -2068,6 +2353,118 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.MetricsTable.RowName = {};
         end
 
+        
+        function createVisualTab(app)
+            %% ===== Layout =====
+            g = uigridlayout(app.VisualTab, [2,1]);
+            g.RowHeight = {30, '1x'};
+            g.ColumnWidth = {'1x'};
+            g.Padding = [8 8 8 8];
+            g.RowSpacing = 6;
+
+            %% ===== Toolbar =====
+            tb = uigridlayout(g, [1 9]);
+            tb.Layout.Row = 1;
+            tb.Layout.Column = 1;
+            tb.Padding = [0 0 0 0];
+            tb.ColumnWidth = {'fit', 170, 70, 'fit', 80, 'fit', 'fit', '1x', 230};
+            tb.RowHeight = {'1x'};
+
+            addLabel(app, tb, 1, 1, 'Controller', 'Stored result shown in the 3D view');
+            app.VisCtrlDropDown = uidropdown(tb, 'Items', {'(no stored results)'}, 'ItemsData', 0, 'Value', 0);
+            app.VisCtrlDropDown.Layout.Row = 1;
+            app.VisCtrlDropDown.Layout.Column = 2;
+            app.VisCtrlDropDown.Enable = 'off';
+            app.VisCtrlDropDown.ValueChangedFcn = createCallbackFcn(app, @VisCtrlDropDownValChanged, true);
+            app.VisPlayButton = uibutton(tb, 'push', 'Text', 'Play');
+            app.VisPlayButton.Layout.Row = 1;
+            app.VisPlayButton.Layout.Column = 3;
+            app.VisPlayButton.ButtonPushedFcn = createCallbackFcn(app, @VisPlayButtonPushed, true);
+            
+            addLabel(app, tb, 1, 4, 'Speed', 'sim-seconds per wall-clk second');
+            app.VisSpeedDropDown = uidropdown(tb, "Items", {'1x','5x','10x','20x','50x','100x','200x'}, ...
+            "ItemsData", [1 5 10 20 50 100 200], 'Value', 20);
+            app.VisSpeedDropDown.Layout.Row = 1;
+            app.VisSpeedDropDown.Layout.Column = 5;
+            % app.VisSpeedDropDown.ValueChangedFcn = createCallbackFcn(app, @VisDisplayOptionChanged, true);
+
+            app.VisLoopCheckBox = uicheckbox(tb, 'Text', 'Loop', 'Value', true);
+            app.VisLoopCheckBox.Layout.Row = 1;
+            app.VisLoopCheckBox.Layout.Column = 6;
+
+            addLabel(app, tb, 1, 7, 'Time', 'Drag to scan through the run');
+            app.VisTimeSlider = uislider(tb, 'Limits', [0,1], 'Value',0, 'MajorTicks',[], 'MinorTicks',[]);
+            app.VisTimeSlider.Layout.Row = 1;
+            app.VisTimeSlider.Layout.Column = 8;
+            app.VisTimeSlider.Enable = 'off';
+            app.VisTimeSlider.ValueChangingFcn = createCallbackFcn(app, @VisTimeSliderValueChanging, true);
+            app.VisTimeSlider.ValueChangedFcn = createCallbackFcn(app, @VisTimeSliderValueChanged, true);
+            app.VisTimeLabel = uilabel(tb, 'Text','t = -');
+            app.VisTimeLabel.Layout.Row = 1;
+            app.VisTimeLabel.Layout.Column = 9;
+
+            %% ===== Views =====
+            vg = uigridlayout(g, [1 3]);
+            vg.Layout.Row = 2;
+            vg.Layout.Column = 1;
+            vg.Padding = [0 0 0 0];
+            vg.ColumnWidth = {'1x', '1.4x', 210};
+            vg.RowHeight = {'1x'};
+            app.VisGlobalAxes = uiaxes(vg);
+            app.VisGlobalAxes.Layout.Row = 1;
+            app.VisGlobalAxes.Layout.Column = 1;
+            pp = uipanel(vg, 'BorderType', 'none', 'BackgroundColor', [0.03 0.03 0.08]);
+            pp.Layout.Row = 1;
+            pp.Layout.Column = 2;
+            pg = uigridlayout(pp, [1,1], 'Padding', zeros(1,4), 'BackgroundColor', [0.03 0.03 0.08]);
+            app.VisProxAxes = uiaxes(pg);
+            % title(app.VisGlobalAxes, 'ECI view');
+            % title(app.VisProxAxes, 'ISS-centered LVLH view');
+            % grid(app.VisGlobalAxes, 'on');
+            % grid(app.VisProxAxes, 'on');
+
+            %% ===== Display Options =====
+            nL = size(app.VisLayers, 1);
+            dispOptg = uigridlayout(vg, [7+nL, 1]);
+            dispOptg.Layout.Row = 1;
+            dispOptg.Layout.Column = 3;
+            dispOptg.RowHeight = repmat({22}, 1, 7+nL);
+            dispOptg.RowSpacing = 4;
+            addLabel(app, dispOptg, 1, 1, 'Attitude error drawn x', 'Display only; numbers always show true values');
+            app.VisMagDropDown = uidropdown(dispOptg, "Items", {'1', '10', '100'}, 'ItemsData', [1 10 100], 'Value', 1);
+            app.VisMagDropDown.Layout.Row = 2;
+            app.VisMagDropDown.Layout.Column = 1;
+            app.VisMagDropDown.ValueChangedFcn = createCallbackFcn(app, @VisDisplayOptionChanged, true);
+
+            addLabel(app, dispOptg, 3, 1, 'Proximity Cam', '');
+            app.VisCameraDropDown = uidropdown(dispOptg, "Items", {'ISS-centered', 'Chaser follow', 'Along docking axis'}, ...
+            "ItemsData", {'iss', 'chaser', 'docking'}, 'Value', 'iss');
+            app.VisCameraDropDown.Layout.Row = 4;
+            app.VisCameraDropDown.Layout.Column = 1;
+            app.VisCameraDropDown.ValueChangedFcn = createCallbackFcn(app, @VisCameraChanged, true);
+
+            addLabel(app, dispOptg, 5, 1, 'Chaser size', 'Display only; chaser about 3 meters');
+            app.VisChaserSizeDropDown = uidropdown(dispOptg, 'Items', {'True size', '5x', '10x'}, ...
+                'ItemsData', [1 5 10], 'Value', 5);
+            app.VisChaserSizeDropDown.Layout.Row = 6;
+            app.VisChaserSizeDropDown.Layout.Column = 1;
+            app.VisChaserSizeDropDown.ValueChangedFcn = createCallbackFcn(app, @VisChaserSizeChanged, true);
+
+            addLabel(app, dispOptg, 7, 1, 'Show', '');
+            app.visLayerCheckBoxes = struct();
+            for i = 1:nL
+                if i==nL % chaser layer
+                    cbox = uicheckbox(dispOptg, "Text", app.VisLayers{i, 2}, "Value", 1);
+                else
+                    cbox = uicheckbox(dispOptg, "Text", app.VisLayers{i, 2}, "Value", 0);
+                end
+                cbox.Layout.Row = 7 + i;
+                cbox.Layout.Column = 1;
+                cbox.ValueChangedFcn = createCallbackFcn(app, @VisLayerChanged, true);
+                app.visLayerCheckBoxes.(app.VisLayers{i, 1}) = cbox;
+            end
+        end
+
         function [pnl, grd] = newPanel(app, parent, titleText, row, col, gridSize)
         %NEWPANEL Create a titled panel in a grid cell with an inner grid layout.
         %
@@ -2235,13 +2632,17 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         end
 
         function delete(app)
-        %DELETE Delete the app and its figure.
+        %DELETE Delete the app, playback timer and its figure.
         %
         % Inputs:
         %   app - ADCS_MATLAB_App, this app instance                        
         % Outputs:
         %   (none)
 
+            if ~isempty(app.VisTimer) && isvalid(app.VisTimer)
+                stop(app.VisTimer);
+                delete(app.VisTimer);
+            end
             delete(app.UIFigure);
         end
 

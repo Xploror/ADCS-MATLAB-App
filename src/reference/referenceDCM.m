@@ -20,7 +20,7 @@ u = [1; 0; 0];                         % mode 1: +V-bar
 if SC.mode > 1.5 && SC.mode < 2.5
     [R, y, z] = approachProfile(t, SC);
     u = [R; -y; -z];                   % line of sight chaser -> ISS
-    u = u/sqrt(u.'*u);
+    u = u/sqrt(u'*u);
 end
 
 %% ===== Build C_RO = [b1'; b2'; b3'] =====

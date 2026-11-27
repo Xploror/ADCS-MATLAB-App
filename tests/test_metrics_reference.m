@@ -7,7 +7,7 @@ function test_metrics_reference()
 %   (none; throws an error if any check fails)
 
 %% ===== Synthetic result =====
-t = (0:0.5:10).';                              % [s] 21 samples
+t = (0:0.5:10)';                              % [s] 21 samples
 N = numel(t);
 e = 2*ones(N,1);                               % [deg]
 e(t >= 3) = 0.2;                               % settles at t = 3 s
@@ -22,7 +22,7 @@ flags(t == 4, 5) = 1;                          % momentum flag at t = 4
 tcmd = zeros(N,3);
 tcmd(2,1) = 1;                                 % TV = |1| + |-1| = 2 over 10 s -> 0.2
 res = struct('t', t, 'att_err_deg', e, 'tau_rw', tau, 'tau_cmd', tcmd, ...
-             'h_w', [linspace(0, -3, N).', zeros(N,2)], 'sat_flags', flags, ...
+             'h_w', [linspace(0, -3, N)', zeros(N,2)], 'sat_flags', flags, ...
              'qnorm', 1 + [zeros(N-1,1); 2e-4], 'theta_hat', repmat([1 2 3 0 0 0], N, 1), ...
              'ctrl_id', 2);
 res.SC = struct('theta_true', [1; 2; 4; 0; 0; 0]);

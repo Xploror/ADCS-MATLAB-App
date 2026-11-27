@@ -145,13 +145,13 @@ if ndims(d) == 3
         error('extractSimulinkResults:shape', 'Signal %s: 3-D data with %d pages, %d samples.', ...
             name, size(d, 3), N);
     end
-    X = reshape(d, size(d, 1) * size(d, 2), N).';
+    X = reshape(d, size(d, 1) * size(d, 2), N)';
 elseif size(d, 1) == N
     X = d;                                               % already [N x n] (time first)
 elseif size(d, 2) == N
     % [n x N]: a 3-D array with a single page collapses to 2-D, or data was
     % stored time-last as a matrix.
-    X = d.';
+    X = d';
 else
     error('extractSimulinkResults:shape', 'Signal %s: data of size %s does not match %d samples.', ...
         name, mat2str(size(d)), N);

@@ -51,17 +51,17 @@ for k = 1:N
 
     % --- stage 1 (also the logged outputs at t_k) ---
     [k1, o] = localDeriv(tk, x, refA, noise, ctrl_id, SC, RG, AG, BG);
-    L.q(k,:) = o.q.';            L.w(k,:) = x(5:7).';
-    L.q_r(k,:) = refA.q_r.';     L.w_r(k,:) = refA.w_r.';
-    L.q_e(k,:) = o.q_e.';        L.w_e(k,:) = o.w_e.';
+    L.q(k,:) = o.q';            L.w(k,:) = x(5:7)';
+    L.q_r(k,:) = refA.q_r';     L.w_r(k,:) = refA.w_r';
+    L.q_e(k,:) = o.q_e';        L.w_e(k,:) = o.w_e';
     L.att_err_deg(k) = o.att_err_deg;
-    L.s(k,:) = o.s.';            L.tau_cmd(k,:) = o.tau_cmd.';
-    L.tau_rw(k,:) = o.tau_rw.';  L.h_w(k,:) = x(8:10).';
-    L.theta_hat(k,:) = x(11:16).';
-    L.tau_d(k,:) = o.tau_d.';    L.tau_gg(k,:) = o.tau_gg.';
-    L.tau_aero(k,:) = o.tau_aero.'; L.tau_srp(k,:) = o.tau_srp.';
-    L.tau_mag(k,:) = o.tau_mag.';   L.qnorm(k) = o.qnorm;
-    L.sat_flags(k,:) = o.sat_flags.';
+    L.s(k,:) = o.s';            L.tau_cmd(k,:) = o.tau_cmd';
+    L.tau_rw(k,:) = o.tau_rw';  L.h_w(k,:) = x(8:10)';
+    L.theta_hat(k,:) = x(11:16)';
+    L.tau_d(k,:) = o.tau_d';    L.tau_gg(k,:) = o.tau_gg';
+    L.tau_aero(k,:) = o.tau_aero'; L.tau_srp(k,:) = o.tau_srp';
+    L.tau_mag(k,:) = o.tau_mag';   L.qnorm(k) = o.qnorm;
+    L.sat_flags(k,:) = o.sat_flags';
     if k == N
         break;
     end

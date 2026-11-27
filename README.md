@@ -1,4 +1,4 @@
-# ADCS Controller Comparison Tool — LEO Chaser / ISS Rendezvous (v1.1.0)
+# ADCS Controller Comparison Tool — LEO Chaser / ISS Rendezvous (v1.2.0)
 
 An interactive MATLAB/Simulink environment for testing and comparing three 3-axis attitude controllers on a chaser spacecraft in a 400 km LEO orbit approaching the ISS:
 
@@ -46,12 +46,15 @@ M = arrayfun(@(r) computeMetrics(r, cfg), results);
 README.md, CLAUDE.md, PROJECT_RULES.md, startup_ADCS.m   (optional, local-level, git-excluded: .local/notes.md; see CLAUDE.md section 7)
 app/        ADCS_MATLAB_App.m (App Designer-structured GUI), launchADCSApp.m, README_app.md
 models/     build_ADCS_model.m (generates .slx/.sldd), pushParamsToDictionary.m, README_models.md
-src/        utils, reference, dynamics, disturbances, controllers, sim, analysis, config_io
+src/        utils, reference, dynamics, disturbances, controllers, sim, analysis, config_io, visuals
+assets/     README_assets.md (insert external models for spacecraft here!)
 config/     initDefaults.m, gainMetadata.m, listScenarios.m, gains/, scenarios/, saved/
-tests/      run_all_tests.m, test_*.m, run_all_scenarios_smoketest.m, check_model_wiring_repair.m (opt-in)
+tests/      run_all_tests.m, test_*.m, run_all_scenarios_smoketest.m, test_model_wiring_repair.m, test_visual_playback.m and test_app_3d_view.m (opt-in)
 examples/   run_example_comparison.m
 docs/       DESIGN_SPEC.md (interface contract), ADCS_Technical_Report.pdf
 ```
+
+> Please read `app/Readme_app.md` to understand the app window hierarchy and the description of tab groups. 
 
 ## Verification status (read this)
 - **MATLAB R2026a Update 5 with Simulink 26.1 (2026-09-23):**
@@ -59,7 +62,7 @@ docs/       DESIGN_SPEC.md (interface contract), ADCS_Technical_Report.pdf
   - `run_all_tests` gives **9/9 PASS**, including `test_simulink_vs_reference` (Simulink matches the reference engine to about 1e-11°);
   - all 7 scenarios × 3 controllers give identical verdicts on both engines: 20/21 pass, and the single fail (PD on the persistent-excitation scan) is a genuine limitation of PD.
 - The numerical library and the reference engine are also verified in GNU Octave 8.4.
-- **The GUI has not yet been exercised in MATLAB**. Please report any GUI issue.
+- The GUI runs on the developer's machine. The 3D view (v.1.2.0) geometry initial smoke-tests are cleared! Please report any GUI issue.
 - `tests/check_model_wiring_repair.m` is opt-in. It rebuilds the model with a deliberately injected wiring fault to exercise the builder's self-repair.
 
 ## Documentation
