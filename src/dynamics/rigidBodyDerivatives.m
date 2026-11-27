@@ -17,6 +17,6 @@ function [qdot_raw, wdot] = rigidBodyDerivatives(q_raw, w, tau_rw, tau_d, h_rw, 
 %   J wdot   = -w x (J w + h_w) + tau_rw + tau_d
 
 q = qNormalize(q_raw);
-qdot_raw = 0.5*qKinMatrix(q)*w + SC.k_norm*(1 - q_raw.'*q_raw)*q_raw;
+qdot_raw = 0.5*qKinMatrix(q)*w + SC.k_norm*(1 - q_raw'*q_raw)*q_raw;
 wdot = SC.J_true \ (-cross(w, SC.J_true*w + h_rw) + tau_rw + tau_d);
 end

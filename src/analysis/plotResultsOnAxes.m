@@ -108,7 +108,7 @@ switch quantity
             text(ax, 0.5, 0.5, 'No adaptive (controller 2) run selected', 'Units', 'normalized', 'HorizontalAlignment', 'center');
         else
             r = results(ia);
-            th_true = r.SC.theta_true(:).';
+            th_true = r.SC.theta_true(:)';
             for i = 1:6
                 if abs(th_true(i)) > 1e-9
                     h(end+1) = plot(ax, r.t, r.theta_hat(:, i)/th_true(i), 'Color', colors(2,:), ...

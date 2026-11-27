@@ -68,8 +68,10 @@ xlabel(axG, 'x_{ECI} [km]');
 ylabel(axG, 'y_{ECI} [km]');
 zlabel(axG, 'z_{ECI} [km]');
 view(axG, [-40 25]);
-title(axG, sprintf('Orbit view (chaser within %.1f km of the ISS orbit)', max(V.range_m)/1e3), ...
+go = title(axG, sprintf('Orbit view (chaser within %.1f km of the ISS orbit)', max(V.range_m)/1e3), ...
       'Color', fg, 'Interpreter', 'none');
+% go.Position(1) = 2500;
+% go.Position(2) = 5200;
 hold(axG, 'off');
 
 %% ===== Proximity view: LVLH axes definitions =====
@@ -155,8 +157,10 @@ light(axP, 'Position', [0.3 0.2 -1], 'Style', 'infinite');
 light(axP, 'Position', [-0.5 -0.8 0.4], 'Style', 'infinite', 'Color', [0.4 0.4 0.45]);
 H.hud = text(axP, 0.01, 0.01, '', 'Units', 'normalized', 'VerticalAlignment', 'bottom', ...
              'Color', fg, 'FontSize', 9, 'FontName', 'FixedWidth', 'Interpreter', 'none');
-title(axP, sprintf('Proximity view, LVLH centred on the ISS (ISS mesh: %s)', meshLabel(Mx.iss_source)), ...
+t = title(axP, sprintf('Proximity view, LVLH centred on the ISS (ISS mesh: %s)', meshLabel(Mx.iss_source)), ...
       'Color', fg, 'Interpreter', 'none');
+t.Position(1) = -30;
+t.Position(2) = 450;
 axP.UserData = struct('camera', ''); % frame cache
 hold(axP, 'off');
 end

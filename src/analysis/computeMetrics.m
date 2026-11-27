@@ -65,7 +65,7 @@ M.qnorm_max_dev = max(abs(res.qnorm(:) - 1));
 M.theta_err_final_pct = NaN;
 if res.ctrl_id == 2
     th_true = res.SC.theta_true(:);
-    th_end = res.theta_hat(end, :).';
+    th_end = res.theta_hat(end, :)';
     M.theta_err_final_pct = 100*norm(th_end - th_true)/norm(th_true);
 end
 ts = {'t','q','w','q_r','w_r','q_e','w_e','att_err_deg','s','tau_cmd','tau_rw','h_w', ...

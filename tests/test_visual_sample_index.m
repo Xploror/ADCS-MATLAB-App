@@ -2,7 +2,7 @@ function test_visual_sample_index()
 % Checks of visualSampleIndex: nearest sample, ends, wrap and clamp (errors on failure).
 
 %% ===== Uniform time grid =====
-t = (0:0.1:400).';                                    % [s] default run, 4001 samples
+t = (0:0.1:400)';                                    % [s] default run, 4001 samples
 N = numel(t);
 [m, tp, ended] = visualSampleIndex(t, 0, false);
 assert(m == 1 && tp == 0 && ~ended, 'start of run');

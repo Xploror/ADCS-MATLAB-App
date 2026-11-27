@@ -45,7 +45,7 @@ C = referenceDCM(0, SC);
 [~, ~, C_ON] = orbitGeometry(0, SC);
 [R, y, z] = approachProfile(0, SC);
 u_O = [R; -y; -z]/norm([R; -y; -z]);
-assert(norm(C*C_ON.'*u_O - [1; 0; 0]) < 1e-12, 'mode 2: b1 is not the line of sight');
+assert(norm(C*C_ON'*u_O - [1; 0; 0]) < 1e-12, 'mode 2: b1 is not the line of sight');
 
 %% ===== Mode 3: scan stays within its amplitude about LVLH hold =====
 for t = [0, 77.7, 420, 1111]
@@ -53,7 +53,7 @@ for t = [0, 77.7, 420, 1111]
     C3 = referenceDCM(t, SC);
     SC.mode = 1;                                         % [-] LVLH hold
     C1 = referenceDCM(t, SC);
-    ang = qErrorAngleDeg(dcmToQ(C3*C1.'))*pi/180;        % [rad] scan rotation angle
+    ang = qErrorAngleDeg(dcmToQ(C3*C1'))*pi/180;        % [rad] scan rotation angle
     assert(ang <= norm(SC.scan_amp) + 1e-12, 'mode 3: scan exceeds its amplitude');
 end
 

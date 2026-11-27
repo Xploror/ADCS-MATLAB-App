@@ -15,9 +15,9 @@ for k = 1:50
     qb = qNormalize(randn(4,1));
     Cab = qToDCM(qMult(qa, qb));
     assert(max(max(abs(Cab - qToDCM(qa)*qToDCM(qb)))) < tol, 'qMult does not compose DCMs');
-    assert(max(max(abs(qToDCM(qConj(qa)) - qToDCM(qa).'))) < tol, 'qConj is not the transpose');
+    assert(max(max(abs(qToDCM(qConj(qa)) - qToDCM(qa)'))) < tol, 'qConj is not the transpose');
     C = qToDCM(qa);
-    assert(max(max(abs(C*C.' - eye(3)))) < tol && abs(det(C) - 1) < tol, 'qToDCM is not a rotation');
+    assert(max(max(abs(C*C' - eye(3)))) < tol && abs(det(C) - 1) < tol, 'qToDCM is not a rotation');
 end
 
 %% ===== dcmToQ round trip (random and near-180 deg) =====
@@ -36,7 +36,7 @@ for a = angles
         C = qToDCM(q);
         q2 = dcmToQ(C);
         assert(max(max(abs(qToDCM(q2) - C))) < 1e-12, 'dcmToQ DCM mismatch near 0/180 deg');
-        assert(abs(abs(q2.'*q) - 1) < 1e-12, 'dcmToQ quaternion mismatch near 0/180 deg');
+        assert(abs(abs(q2'*q) - 1) < 1e-12, 'dcmToQ quaternion mismatch near 0/180 deg');
     end
 end
 
@@ -45,7 +45,7 @@ for k = 1:20
     e = randn(3,1); phi = 2*pi*rand - pi;
     q = qFromAxisAngle(3*e, phi);           % non-unit axis must be normalised
     eh = e/norm(e);
-    Cf = cos(phi)*eye(3) + (1 - cos(phi))*(eh*eh.') - sin(phi)*skew3(eh);
+    Cf = cos(phi)*eye(3) + (1 - cos(phi))*(eh*eh') - sin(phi)*skew3(eh);
     assert(max(max(abs(qToDCM(q) - Cf))) < tol, 'axis-angle DCM formula mismatch');
     qr = qFromRotVec(phi*eh);
     assert(max(max(abs(qToDCM(qr) - Cf))) < tol, 'qFromRotVec mismatch');

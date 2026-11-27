@@ -61,7 +61,7 @@ end
 m = idx(end);
 updateScene3D(H, V, m, struct('draw', false));
 T = H.chsTf.Matrix;
-assert(norm(T(1:3,1:3) - V.M_BO_disp(:,:,m)) < 1e-12 && norm(T(1:3,4) - V.rho_O(m,:).') < 1e-9, ...
+assert(norm(T(1:3,1:3) - V.M_BO_disp(:,:,m)) < 1e-12 && norm(T(1:3,4) - V.rho_O(m,:)') < 1e-9, ...
        'chaser transform does not match M_BO_disp / rho_O');
 S = H.chsScale.Matrix;
 for j = 1:3

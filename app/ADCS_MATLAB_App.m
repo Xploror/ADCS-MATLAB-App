@@ -195,7 +195,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             %% ===== Data-driven dropdowns =====
             try
                 list = listScenarios();
-                setDropDownItems(app, app.PresetDropDown, list(:, 2).', list(:, 1).');
+                setDropDownItems(app, app.PresetDropDown, list(:, 2)', list(:, 1)');
             catch ME
                 setStatus(app, ['listScenarios() failed: ' ME.message]);
             end
@@ -910,14 +910,14 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             sc  = cfg.scenario;
 
             %% ===== Attitude error =====
-            ax = [app.AxisEditFields.Value].';                      %  raw axis
+            ax = [app.AxisEditFields.Value]';                      %  raw axis
             nrm = norm(ax);
             if nrm > 0
                 ax = ax / nrm;                                      %  normalised axis
             end
             sc.att_err_axis      = ax;                              % [3x1] 
             sc.att_err_angle_deg = app.AngleEditField.Value;        % [deg]
-            sc.rate_err0_degps   = [app.RateEditFields.Value].';    % [3x1] [deg/s]
+            sc.rate_err0_degps   = [app.RateEditFields.Value]';    % [3x1] [deg/s]
 
             %% ===== Reference / orbit =====
             sc.target_mode    = app.TargetModeDropDown.Value;       %  0|1|2|3
@@ -928,8 +928,8 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             sc.T_close_s      = app.TcloseEditField.Value;          % [s]
             sc.y_off0_m       = app.Yoff0EditField.Value;           % [m]
             sc.z_off0_m       = app.Zoff0EditField.Value;           % [m]
-            sc.scan_amp_deg    = [app.ScanAmpEditFields.Value].';  % [3x1] [deg]
-            sc.scan_freq_radps = [app.ScanFreqEditFields.Value].'; % [3x1] [rad/s]
+            sc.scan_amp_deg    = [app.ScanAmpEditFields.Value]';  % [3x1] [deg]
+            sc.scan_freq_radps = [app.ScanFreqEditFields.Value]'; % [3x1] [rad/s]
 
             %% ===== Inertia =====
             sc.J_nom      = readJnomFromTable(app);                 % [3x3] [kg*m^2]
@@ -1128,7 +1128,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             J = sc.J_nom;
             if any(~isfinite(J(:)))
                 m{end+1} = 'J_nom contains non-finite entries.';
-            elseif min(eig(0.5*(J + J.'))) <= 0
+            elseif min(eig(0.5*(J + J'))) <= 0
                 m{end+1} = 'J_nom must be positive definite.';
             end
 
@@ -1145,7 +1145,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                 for i = 1:numel(flds)
                     v = g.(flds{i});
                     if isnumeric(v) && any(~isfinite(v(:)))
-                        m{end+1} = sprintf('Gain %s.%s contains non-finite values.', ctrl, flds{i}); %#ok<AGROW>
+                        m{end+1} = sprintf('Gain %s.%s contains non-finite values.', ctrl, flds{i});
                     end
                 end
             end
@@ -1164,13 +1164,13 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                 ctrl = smcCtrls{c};
                 g = app.Cfg.gains.(ctrl);
                 if isfield(g, 'phi') && any(~(double(g.phi(:)) > 0))
-                    m{end+1} = sprintf('Gain %s.phi must be > 0.', ctrl); %#ok<AGROW>
+                    m{end+1} = sprintf('Gain %s.phi must be > 0.', ctrl);
                 end
                 nonNeg = {'K_diag', 'eta', 'Gamma_diag'};        % gain fields that must be >= 0 
                 for i = 1:numel(nonNeg)
                     f = nonNeg{i};
                     if isfield(g, f) && any(~(double(g.(f)(:)) >= 0))
-                        m{end+1} = sprintf('Gain %s.%s must be >= 0.', ctrl, f); %#ok<AGROW>
+                        m{end+1} = sprintf('Gain %s.%s must be >= 0.', ctrl, f);
                     end
                 end
             end
@@ -1364,7 +1364,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                 D = cell2mat(D);
             end
             D = double(D);
-            J = 0.5 * (D + D.');
+            J = 0.5 * (D + D');
         end
 
         function refreshJTrue(app)
@@ -1426,7 +1426,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                 end
 
                 %% ===== Fit the value to the table width (pad or truncate) =====
-                v  = double(g.(f)(:)).';
+                v  = double(g.(f)(:))';
                 vv = zeros(1, n);
                 m  = min(n, numel(v));
                 vv(1:m) = v(1:m);

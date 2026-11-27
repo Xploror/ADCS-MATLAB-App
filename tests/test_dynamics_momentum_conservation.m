@@ -26,8 +26,8 @@ for caseId = 1:2
     q = qFromAxisAngle([1; -2; 0.5], 0.8);
     w = [0.02; -0.03; 0.015];                  % [rad/s] initial body rate
     J = SC.J_true;
-    H0 = qToDCM(q).'*(J*w + h_w);
-    E0 = 0.5*(w.'*J*w);
+    H0 = qToDCM(q)'*(J*w + h_w);
+    E0 = 0.5*(w'*J*w);
     x = [q; w];
     f = @(x) localF(x, h_w, SC);
 
@@ -38,9 +38,9 @@ for caseId = 1:2
         x = x + dt/6*(k1 + 2*k2 + 2*k3 + k4);
         if mod(k, 100) == 0
             qn = qNormalize(x(1:4));
-            H = qToDCM(qn).'*(J*x(5:7) + h_w);
+            H = qToDCM(qn)'*(J*x(5:7) + h_w);
             maxH = max(maxH, norm(H - H0)/norm(H0));
-            maxE = max(maxE, abs(0.5*(x(5:7).'*J*x(5:7)) - E0)/E0);
+            maxE = max(maxE, abs(0.5*(x(5:7)'*J*x(5:7)) - E0)/E0);
         end
     end
 
