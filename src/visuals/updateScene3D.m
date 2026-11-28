@@ -75,6 +75,8 @@ if newk
     set(H.trace, 'XData', V.rho_O(k,1), 'YData', V.rho_O(k,2), 'ZData', V.rho_O(k,3)); % maintains trajectory drawing
 end
 
+set(H.dock, 'XData', [0 V.range_m(m)]) % change length of dock line
+
 %% ===== Global view =====
 if newk
     set(H.markI, 'XData', V.r_I_E(m,1)*km, 'YData', V.r_I_E(m,2)*km, 'ZData', V.r_I_E(m,3)*km);

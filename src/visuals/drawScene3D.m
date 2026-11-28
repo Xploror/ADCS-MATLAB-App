@@ -150,7 +150,7 @@ ylim(axP, [lo(2) hi(2)]);
 zlim(axP, [lo(3) hi(3)]);
 set(axP, 'XTickMode', 'manual', 'YTickMode', 'manual', 'ZTickMode', 'manual', ...
     'PlotBoxAspectRatioMode', 'manual');
-axP.Clipping = 'on';
+axP.Clipping = 'off';
 styleAxes(axP, space, fg);
 xlabel(axP, 'o_1 [m]');
 ylabel(axP, 'o_2 [m]');
