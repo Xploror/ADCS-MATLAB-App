@@ -46,6 +46,8 @@ else
     H.earth = surf(axG, R*X, R*Y, R*Z, 'CData', img, 'FaceColor', 'texturemap', 'EdgeColor', 'none');
 end
 H.earth.FaceLighting = 'gouraud';
+H.EarthTf = hgtransform('Parent', axG);
+H.earth.Parent = H.EarthTf;
 
 H.layer.orbits = hggroup('Parent', axG);
 plot3(V.orbit_E(:,1)*km, V.orbit_E(:,2)*km, V.orbit_E(:,3)*km, '--', 'Color', [0.5 0.8 1], 'Parent', H.layer.orbits);
@@ -163,6 +165,48 @@ t.Position(1) = -30;
 t.Position(2) = 450;
 axP.UserData = struct('camera', ''); % frame cache
 hold(axP, 'off');
+
+
+%% ===== Proximity view: scaled Earth behind follow camera =====
+axE = optField(opts, 'earth_axes', []);
+H.axE = axE;
+if isempty(axE)
+    return;
+end
+cla(axE);
+hold(axE, 'on');
+H.layer.earthP = hggroup('Parent', axE);        % user-layer toggle
+H.earthcam = hggroup('Parent', H.layer.earthP, 'Visible', 'off');
+H.pearthTf = hgtransform('Parent', H.earthcam);
+rE = V.R_E/V.R_orb;
+[Xe, Ye, Ze] = sphere(120);
+if isempty(img)
+    surf(rE*Xe, rE*Ye, rE*Ze, 'FaceColor', [0.20 0.40 0.80], 'EdgeColor','none', ...
+        'FaceLighting', 'gouraud', 'AmbientStrength',0.25, 'Parent', H.pearthTf);
+else
+    surf(rE*Xe, rE*Ye, rE*Ze, 'CData', img, 'FaceColor', 'texturemap', 'EdgeColor','none', ...
+        'FaceLighting', 'gouraud', 'AmbientStrength',0.25, 'Parent', H.pearthTf);
+end
+H.pSun = light(axE, 'Position', [0 0 -1], 'Style', 'infinite');
+axis(axE, 'equal');
+set(axE,'XLim',[-2,2],'YLim',[-2,2],'ZLim',[-2,2],'Visible','off','Clipping','off', ...
+    'Projection','perspective','PositionConstraint','innerposition','PlotBoxAspectRatioMode','manual', ...
+    'HitTest','off','PickableParts','none');
+axE.Toolbar.Visible = 'off';
+disableDefaultInteractivity(axE);
+hold(axE, 'off');
+H.syncEarth = @() syncEarthCamera(axP, axE);
+if isstruct(axE.UserData) && isfield(axE.UserData, 'listener')
+    delete(axE.UserData.listener);
+end
+lis = [];
+try
+    lis = addlistener(axP, {'CameraPosition', 'CameraTarget', 'CameraUpVector', 'CameraViewAngle'}, ...
+                        'PostSet', @(~,~) syncEarthCamera(axP, axE));
+catch
+end
+axE.UserData = struct('listener', lis);
+
 end
 
 %% ===== Local functions =====
@@ -265,6 +309,20 @@ if strcmp(src, 'built-in')
 else
     s = 'NASA model';
 end
+end
+
+function syncEarthCamera(axP, axE)
+% Gives Earth axis the proximity camera's orientation, with its cam at
+% origin
+
+if ~isvalid(axP) || ~isvalid(axE)
+    return;
+end
+f = axP.CameraTarget - axP.CameraPosition;  % viewing direction in axP
+f = f/norm(f);                              % unit viewing direction
+set(axE, 'CameraPosition', zeros(1,3), 'CameraTarget', f, 'CameraUpVector', axP.CameraUpVector, ...
+    'CameraViewAngle', axP.CameraViewAngle);
+
 end
 
 function v = optField(s, name, default)

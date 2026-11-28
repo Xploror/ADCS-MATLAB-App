@@ -9,6 +9,8 @@ function V = buildVisualTrajectory(res, opts)
 %          hold_range_m - double [1], hold-point range for modes 0, 1, 3 ([] = SC.R0) [m]
 %          C_SO         - double [3x3], ISS attitude w.r.t. LVLH (eye = +XVV/+ZLV) [-]
 %          arrow_len_m  - double [1], display length L of a full-scale torque arrow [m]
+%          omega_E      - double [1], Earth rotation rate [rad/s]
+%          theta0_E     - double [1], Earth rotation axis at t = 0.
 % Outputs:
 %   V    - visual struct, everything the renderer needs:
 %          t [Nx1] [s], mode [-], ctrl_id [-], ctrl_name (char), mag_k [-],
@@ -26,7 +28,12 @@ function V = buildVisualTrajectory(res, opts)
 %          att_err_deg [Nx1] true attitude error from res [deg],
 %          A_O [3x3xN] torque arrows in O, column j = arrow of wheel axis j [m],
 %          tau_frac [Nx3] tau_rw / tau_max [-], sat_tau, sat_h [Nx3] logical flags [-],
-%          hold_point (logical), pos_note, point_note (char) labels for the display.
+%          hold_point (logical), pos_note, point_note (char) labels for the display,
+%          omega_E [rad/s], theta0_E [rad],
+%          C_EF [3x3xN] Earth fixed axis F in ECI inertial
+%          C_OF [3x3xN] Earth fixed axis F in ISS LVLH O frame
+%          earth_O [1x3] Earth center w.r.t ISS in O frame
+%          sun_O [Nx3] unit sun direction in O frame
 %
 % Conventions: q is scalar-first, qToDCM(q) = C_BN so that v_B = C_BN v_N;
 % C_ON is the LVLH DCM of orbitGeometry; rho_O = [-R; y; z] in mode 2.
@@ -40,13 +47,24 @@ mag_k = getOpt(opts, 'mag_k', 1);                    % [-]  display magnificatio
 hold_range = getOpt(opts, 'hold_range_m', []);       % [m]  hold-point range (empty = SC.R0)
 C_SO = getOpt(opts, 'C_SO', eye(3));                 % [-]  ISS attitude relative to LVLH
 L = getOpt(opts, 'arrow_len_m', 3);                  % [m]  full-scale torque-arrow length
+w_E = getOpt(opts, 'omega_E', []);                   % [rad/s]
+theta0_E = getOpt(opts, 'theta0_E', 0);              % [rad]
 
 %% ===== Run data =====
 SC = res.SC;
 t = res.t(:);                                        % [s]  sample times
 N = numel(t);
+
 if isempty(hold_range)
     hold_range = SC.R0;
+end
+
+if isempty(w_E)
+    if isfield(SC, 'omega_E')
+        w_E = SC.omega_E;
+    else
+        w_E = 7.2921150e-5;     % rad/s, IERS value
+    end
 end
 
 V = struct();
@@ -59,6 +77,8 @@ V.R_E = SC.R_E;
 V.R_orb = SC.R_orb;
 V.n = SC.n;
 V.incl = SC.incl;
+V.omega_E = w_E;
+V.theta0_E = theta0_E;
 
 %% ===== Display ECI rotation =====
 ci = cos(SC.incl);
@@ -77,6 +97,10 @@ V.M_BO = zeros(3,3,N);
 V.M_BO_disp = zeros(3,3,N);
 V.M_RO = zeros(3,3,N);
 V.M_SO = C_SO';
+V.C_EF = zeros(3,3,N);
+V.C_OF = zeros(3,3,N);
+V.earth_O = [0 0 SC.R_orb];
+V.sun_O = zeros(N,3);
 V.u_O = zeros(N,3);
 V.e_point_deg = zeros(N,1);
 V.A_O = zeros(3,3,N);
@@ -117,6 +141,15 @@ for m = 1:N
 
     % torque arrows on the displayed body axes
     V.A_O(:,:,m) = V.M_BO_disp(:,:,m)*diag(L*V.tau_frac(m,:));
+
+    % Earth in O frame
+    th = theta0_E + w_E*t(m); %Earth attitude
+    C_EF = [cos(th) -sin(th) 0;
+            sin(th) cos(th) 0;
+            0 0 1];
+    V.C_EF(:,:,m) = C_EF;
+    V.C_OF(:,:,m) = C_ON*V.C_EN'*C_EF;
+    V.sun_O(m,:) = (C_ON*SC.sun_N(:))';
 end
 V.r_I_E = (V.C_EN*V.r_I_N')';
 V.r_C_E = (V.C_EN*V.r_C_N')';

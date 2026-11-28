@@ -33,7 +33,7 @@ force = ~isfield(opts, 'force') || opts.force; % default true
 ax = H.axP;
 UD = ax.UserData;
 if ~isstruct(UD) || ~isfield(UD, 'f')
-    UD = struct('camera', '', 'f', NaN(1,3), 'sat', false(1,3), 'rho', NaN(3,1), 'nk', -1, 'hud', []); % default setting for UserData
+    UD = struct('camera', '', 'f', NaN(1,3), 'sat', false(1,3), 'rho', NaN(3,1), 'nk', -1, 'hud', [], 'tE', NaN); % default setting for UserData
     force = true;
 end
 km = 1e-3;                                           % [km/m]
@@ -81,6 +81,7 @@ if newk
     set(H.markC, 'XData', V.r_C_E(m,1)*km, 'YData', V.r_C_E(m,2)*km, 'ZData', V.r_C_E(m,3)*km);
     set(H.arcI, 'XData', V.r_I_E(k,1)*km, 'YData', V.r_I_E(k,2)*km, 'ZData', V.r_I_E(k,3)*km);
     set(H.arcC, 'XData', V.r_C_E(k,1)*km, 'YData', V.r_C_E(k,2)*km, 'ZData', V.r_C_E(k,3)*km);
+    H.EarthTf.Matrix = blkdiag(V.C_EF(:,:,m), 1);  % Earth spin in orbit view
     UD.nk = numel(k);
 end
 %% ===== HUD =====
@@ -92,7 +93,7 @@ end
 
 %% ===== Camera settings =====
 % In follow preset the camera stays fixed and the scene root H.sceneTf is
-% instead moved. Chaser needs to be brought to the origin or docking frame
+% moved instead. Chaser needs to be brought to the origin or docking frame
 % is aligned with camera ('docking')
 up = [0 0 -1];                                       % zenith (-o3) up
 prev = UD.camera;
@@ -103,16 +104,16 @@ switch cam
     case 'chaser'
         S = [eye(3) -rho; 0 0 0 1];                 % chaser at the origin
         if newcam
-            d = 30*scale;                 % [m] follows the chaser display size
+            d = 60*scale;                 % [m] follows the chaser display size
             set(ax, 'CameraTarget', zeros(1,3), 'CameraPosition', d*[-0.55 -0.75 -0.37], ...
                 'CameraUpVector', up, 'CameraViewAngle', 30);
         end
     case 'docking'
         b1 = M(:,1)';
-        if 1 - abs(dot(b1', -up)) < 1e-6
+        if 1 - abs(dot(b1', up)) < 1e-6
             z = [0;1;0] - b1(2)*b1'; % orthogonal z from orbit normal
         else
-            z = -up' - dot(b1', -up)*b1'; % orthogonal z from zenith direction
+            z = up' - dot(b1', up)*b1'; % orthogonal z from zenith direction
         end
         z = z/norm(z);
         R = [b1' cross(z, b1') z];  % docking frame DCM (transpose of Rotation matrix)
@@ -138,10 +139,27 @@ if newcam
         set(ax, 'Color', H.bg, 'XColor', H.fg, 'YColor', H.fg, 'ZColor', H.fg, 'XGrid', 'on', 'YGrid', 'on', 'ZGrid', 'on', ...
             'Projection', 'orthographic', 'PositionConstraint', 'outerposition');
     else
-        set(ax, 'Color', H.bg, 'XColor', 'none', 'YColor', 'none', 'ZColor', 'none', 'XGrid', 'off', 'YGrid', 'off', 'ZGrid', 'off', ...
+        set(ax, 'Color', 'none', 'XColor', 'none', 'YColor', 'none', 'ZColor', 'none', 'XGrid', 'off', 'YGrid', 'off', 'ZGrid', 'off', ...
             'Projection', 'perspective', 'PositionConstraint', 'innerposition');
     end
 end
+
+%% ===== Scaled Earth behind follow camera =====
+if isfield(H, 'axE') && ~isempty(H.axE)
+    showE = ~strcmp(cam, 'iss');
+    if newcam
+        H.earthcam.Visible = onOff(showE);
+        H.syncEarth();
+    end
+    turned = abs(V.t(m)-UD.tE)*(V.omega_E+V.n) > 1e-3;   % true when atleast moved 0.001 rad
+    if showE && (force || newcam || turned)
+        R_S = S(1:3, 1:3);
+        H.pearthTf.Matrix = [R_S*V.C_OF(:,:,m), R_S*(V.earth_O'/V.R_orb); 0 0 0 1];
+        H.pSun.Position = (R_S*V.sun_O(m,:)')';
+        UD.tE = V.t(m);
+    end
+end
+
 UD.camera = cam;
 ax.UserData = UD;
 
@@ -178,5 +196,20 @@ end
 s{end+1} = V.pos_note;
 if ~isempty(V.point_note)
     s{end+1} = V.point_note;
+end
+end
+
+function s = onOff(tf)
+%Convert a logical to the char 'on' / 'off'.
+%
+% Inputs:                        
+%   tf  - logical [1]                                                  
+% Outputs:
+%   s   - char, 'on' if tf is true, else 'off'                       
+
+if tf
+    s = 'on';
+else
+    s = 'off';
 end
 end

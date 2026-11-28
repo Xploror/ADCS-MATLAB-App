@@ -130,6 +130,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         VisTimeLabel            matlab.ui.control.Label          % current playback time and sample index
         VisGlobalAxes           matlab.ui.control.UIAxes         % ECI display [km]
         VisProxAxes             matlab.ui.control.UIAxes         % ISS-centered LVLH display [m]
+        VisEarthAxes            matlab.ui.control.UIAxes         % scaled Earth behind the proximity view (follow cameras) [R_orb]
         VisPlayButton           matlab.ui.control.Button         % play/pause 3D playback
         VisSpeedDropDown        matlab.ui.control.DropDown       % playback speed factor sigma
         VisLoopCheckBox         matlab.ui.control.CheckBox       % wrap playback
@@ -170,7 +171,8 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
                           'Quaternion norm deviation ', 'Adaptive θ_est/θ_true '} % axes titles
         VisLayers      = {'orbits', 'Orbits'; 'sun', 'Sun direction'; 'lvlh', 'LVLH axes'; ...
                            'reference', 'Reference axes'; 'los', 'Line of sight, docking axis'; ...
-                           'torque', 'Wheel torque arrows'; 'trace', 'Approach path'; 'chaserMesh', 'Chaser'} % drawScene3D layer fields
+                           'torque', 'Wheel torque arrows'; 'trace', 'Approach path'; 'chaserMesh', 'Chaser'; ...
+                           'earthP', 'Earth'} % drawScene3D layer fields
     end
 
     %% ===== Callbacks: Scenario tab =====
@@ -1255,6 +1257,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             app.VisScene = [];
             app.VisTraj = [];
             app.VisIndex = 1;
+            cla(app.VisEarthAxes);
             axs = [app.VisGlobalAxes, app.VisProxAxes];
             for i=1:numel(axs)
                 cla(axs(i));
@@ -1265,7 +1268,8 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         end
 
         function opts = visualOptions(app)
-            opts = struct('mag_k', app.VisMagDropDown.Value, 'chaser_scale', app.VisChaserSizeDropDown.Value);
+            opts = struct('mag_k', app.VisMagDropDown.Value, 'chaser_scale', app.VisChaserSizeDropDown.Value, ...
+                          'earth_axes', app.VisEarthAxes);
         end
 
         function cam = visualCamera(app)
@@ -1737,7 +1741,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
         end
 
         function s = onOff(app, tf)
-        %ONOFF Convert a logical to the char 'on' / 'off'.
+        %Convert a logical to the char 'on' / 'off'.
         %
         % Inputs:
         %   app - ADCS_MATLAB_App, this app instance                        
@@ -2417,7 +2421,12 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             pp.Layout.Row = 1;
             pp.Layout.Column = 2;
             pg = uigridlayout(pp, [1,1], 'Padding', zeros(1,4), 'BackgroundColor', [0.03 0.03 0.08]);
+            app.VisEarthAxes = uiaxes(pg);
+            app.VisEarthAxes.Layout.Row = 1;
+            app.VisEarthAxes.Layout.Column = 1;
             app.VisProxAxes = uiaxes(pg);
+            app.VisProxAxes.Layout.Row = 1;
+            app.VisProxAxes.Layout.Column = 1;
             % title(app.VisGlobalAxes, 'ECI view');
             % title(app.VisProxAxes, 'ISS-centered LVLH view');
             % grid(app.VisGlobalAxes, 'on');
@@ -2453,7 +2462,7 @@ classdef ADCS_MATLAB_App < matlab.apps.AppBase
             addLabel(app, dispOptg, 7, 1, 'Show', '');
             app.visLayerCheckBoxes = struct();
             for i = 1:nL
-                if i==nL % chaser layer
+                if any(strcmp(app.VisLayers{i,1}, {'chaserMesh', 'earthP'}))
                     cbox = uicheckbox(dispOptg, "Text", app.VisLayers{i, 2}, "Value", 1);
                 else
                     cbox = uicheckbox(dispOptg, "Text", app.VisLayers{i, 2}, "Value", 0);
